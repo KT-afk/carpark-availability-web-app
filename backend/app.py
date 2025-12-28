@@ -9,18 +9,17 @@ CORS(app)
 def hello_world():
     return "<p>Hello, World!</p>"
 
-@app.route("/search", methods=["GET"])
+@app.route("/carparks", methods=["GET"])
 def search():
     NUMBER_OF_CARPARK = 20
     carpark_number = request.args.get('carpark_number', '')
-    
-    if not carpark_number:
-        return {'carparks': []}
     
     try:
         response = requests.get("https://api.data.gov.sg/v1/transport/carpark-availability")
         data = response.json()
         all_carparks = data["items"][0]["carpark_data"]
+        if not carpark_number:
+            return { "carparks": all_carparks }
         filtered = [
             {
                 "carpark_num" : cp["carpark_number"],
