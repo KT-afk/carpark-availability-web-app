@@ -1,5 +1,7 @@
+import SearchBar from '@/components/SearchBar';
+import { availableCarparkResponse } from '@/types/types';
 import { useEffect, useState } from 'react';
-import GoogleSearchBar from './components/GoogleSearchBar';
+
 
 function App() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,7 +34,7 @@ function App() {
 
   return (
     <>
-      <GoogleSearchBar
+      <SearchBar
         value={searchTerm}
         searchResults={searchResults}
         onChange={setSearchTerm}

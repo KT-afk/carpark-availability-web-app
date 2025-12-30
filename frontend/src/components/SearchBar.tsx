@@ -1,12 +1,13 @@
+import { availableCarparkResponse } from '@/types/types';
 import { Mic, Search } from 'lucide-react';
 
-interface GoogleSearchBarProps {
+interface SearchBarProps {
   value: string;
   searchResults: availableCarparkResponse[];
   onChange: (value: string) => void;
 }
 
-const GoogleSearchBar = ({ value, searchResults, onChange }: GoogleSearchBarProps) => {
+const SearchBar = ({ value, searchResults, onChange }: SearchBarProps) => {
   return (
     <div className="flex min-h-screen flex-col items-center bg-white p-4">
       <form
@@ -27,7 +28,7 @@ const GoogleSearchBar = ({ value, searchResults, onChange }: GoogleSearchBarProp
               className="mr-3 text-gray-400 hover:text-gray-600"
               onClick={() =>
                 alert(
-                  "Voice search is unsupported in this demo.\nTry implementing this feature yourself 🙂"
+                  "Voice search is unsupported in this demo."
                 )
               }
             >
@@ -56,4 +57,4 @@ const GoogleSearchBar = ({ value, searchResults, onChange }: GoogleSearchBarProp
   );
 };
 
-export default GoogleSearchBar;
+export default SearchBar;
