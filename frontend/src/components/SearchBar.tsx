@@ -47,7 +47,10 @@ const SearchBar = ({ value, searchResults, onChange }: SearchBarProps) => {
             {searchResults.map((result, index) => (
               <li key={index} className="mb-4 border-b pb-2">
                 <p className="font-semibold">Carpark: {result.carpark_num}</p>
-                <p>Available: {result.lots_available} / {result.total_lots} lots</p>
+                <p>Area: {result.area}</p>
+                <p>Development: {result.development}</p>
+                <p>Lot Type: {result.lot_type}</p>
+                <p>Available Lots: {result.lots_available} lots</p>
               </li>
             ))}
           </ul>
