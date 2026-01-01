@@ -1,5 +1,7 @@
 export interface availableCarparkResponse {
     carpark_num: string;
-    total_lots: string;
+    area: string;
+    development: string;
+    lot_type: string;
     lots_available: string;
 }
