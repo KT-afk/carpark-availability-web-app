@@ -17,10 +17,13 @@ def fetch_all_carparks():
     
 def transform_carpark(cp):
     """Transform single carpark to frontend format."""
+    latitude, longitude = cp["Location"].split()
     return {
         "carpark_num": cp["CarParkID"],
         "area": cp["Area"],
         "development": cp["Development"],
+        "latitude": float(latitude),
+        "longitude": float(longitude),
         "car_lots": cp["CarLots"],
         "motorcycle_lots": cp["MotorcycleLots"],
         "heavy_vehicle_lots": cp["HeavyVehicleLots"]
@@ -46,6 +49,7 @@ def consolidate_carparks(carparks):
                 "CarParkID": cp["CarParkID"],
                 "Area": cp["Area"],
                 "Development": cp["Development"],
+                "Location": cp["Location"],
                 "CarLots": 0,
                 "HeavyVehicleLots": 0,
                 "MotorcycleLots": 0
