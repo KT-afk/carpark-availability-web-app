@@ -1,11 +1,13 @@
-import SearchBar from '@/components/SearchBar';
-import { availableCarparkResponse } from '@/types/types';
-import { useEffect, useState } from 'react';
-
+import SearchBar from "@/components/SearchBar";
+import { availableCarparkResponse } from "@/types/types";
+import { useEffect, useState } from "react";
+import CarparkMap from "./components/CarparkMap";
 
 function App() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<availableCarparkResponse[]>([]);
+  const [searchResults, setSearchResults] = useState<
+    availableCarparkResponse[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -21,13 +23,15 @@ function App() {
       url.searchParams.append("carpark_number", searchTerm);
 
       fetch(url)
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           setSearchResults(data.carparks || []);
           setIsLoading(false);
-          console.log("Fetched carparks with number " + searchTerm + " from API");
+          console.log(
+            "Fetched carparks with number " + searchTerm + " from API"
+          );
         })
-        .catch(error => {
+        .catch((error) => {
           console.error("Error fetching carparks:", error);
           setSearchResults([]);
           setIsLoading(false);
@@ -48,8 +52,9 @@ function App() {
         isLoading={isLoading}
         onChange={setSearchTerm}
       />
+      {searchResults && <CarparkMap carparks={searchResults} />}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
