@@ -1,7 +1,8 @@
 import SearchBar from "@/components/SearchBar";
 import { availableCarparkResponse } from "@/types/types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import CarparkMap from "./components/CarparkMap";
+import { CarparkMapRef } from "./components/CarparkMap";
 
 function App() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -9,13 +10,14 @@ function App() {
     availableCarparkResponse[]
   >([]);
   const [isLoading, setIsLoading] = useState(false);
-
+  const mapRef = useRef<CarparkMapRef>(null);
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setSearchResults([]);
       setIsLoading(false);
       return;
     }
+    
 
     setIsLoading(true);
     const timeoutId = setTimeout(() => {
@@ -43,16 +45,22 @@ function App() {
       setIsLoading(false);
     };
   }, [searchTerm]);
-
+  const handleCarparkSelect = (carpark: availableCarparkResponse) => {
+    mapRef.current?.panToCarpark(carpark.latitude, carpark.longitude);
+    setSearchTerm(""); // Clear search to hide dropdown
+  }
   return (
     <>
+    <div className="relative h-screen w-full">
+      <CarparkMap ref={mapRef} carparks={searchResults || []} />
       <SearchBar
         value={searchTerm}
         searchResults={searchResults}
         isLoading={isLoading}
         onChange={setSearchTerm}
+        onCarparkSelect={handleCarparkSelect}
       />
-      {searchResults && <CarparkMap carparks={searchResults} />}
+      </div>
     </>
   );
 }
