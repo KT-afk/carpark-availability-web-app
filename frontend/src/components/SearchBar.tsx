@@ -6,6 +6,7 @@ interface SearchBarProps {
   searchResults: availableCarparkResponse[];
   isLoading: boolean;
   onChange: (value: string) => void;
+  onCarparkSelect: (carpark: availableCarparkResponse) => void;
 }
 
 const SearchBar = ({
@@ -13,13 +14,14 @@ const SearchBar = ({
   searchResults,
   isLoading,
   onChange,
+  onCarparkSelect,
 }: SearchBarProps) => {
   const showDropdown =
     value.trim() !== "" && (isLoading || searchResults.length > 0);
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-white p-4">
-      <div className="w-full max-w-2xl">
+    <div className="flex fixed top-0 left-0 right-0 justify-center pt-4 px-4 z-30 p-4 pointer-events-none">
+      <div className="w-full max-w-2xl pointer-events-auto">
         <form onSubmit={(e) => e.preventDefault()} className="relative">
           <div className="relative">
             <input
@@ -59,6 +61,7 @@ const SearchBar = ({
                     <li
                       key={index}
                       className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => onCarparkSelect(result)}
                     >
                       <p className="font-semibold text-gray-900">
                         Carpark Number: {result.carpark_num}
