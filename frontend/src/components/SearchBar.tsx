@@ -7,6 +7,7 @@ interface SearchBarProps {
   isLoading: boolean;
   onChange: (value: string) => void;
   onCarparkSelect: (carpark: availableCarparkResponse) => void;
+  isDropdownVisible: boolean;
 }
 
 const SearchBar = ({
@@ -15,9 +16,10 @@ const SearchBar = ({
   isLoading,
   onChange,
   onCarparkSelect,
+  isDropdownVisible,
 }: SearchBarProps) => {
   const showDropdown =
-    value.trim() !== "" && (isLoading || searchResults.length > 0);
+    value.trim() !== "" && isDropdownVisible && (isLoading || searchResults.length > 0);
 
   return (
     <div className="flex fixed top-0 left-0 right-0 justify-center pt-4 px-4 z-30 p-4 pointer-events-none">

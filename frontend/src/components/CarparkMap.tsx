@@ -1,6 +1,6 @@
 import { availableCarparkResponse } from "@/types/types";
 import { APIProvider, InfoWindow, Map, Marker, useMap } from "@vis.gl/react-google-maps";
-import { useState, forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 
 export interface CarparkMapRef {
   panToCarpark: (lat: number, lng: number) => void;
@@ -13,7 +13,7 @@ interface CarparkMapProps {
 // Inner component that uses useMap() - must be rendered INSIDE <Map>
 const MapController = forwardRef<CarparkMapRef, { carparks: availableCarparkResponse[] }>(
   ({ carparks }, ref) => {
-    const map = useMap(); // ✅ Now inside <Map> context
+    const map = useMap(); 
     const [selectedCarpark, setSelectedCarpark] = useState<availableCarparkResponse | null>(null);
 
     useImperativeHandle(ref, () => ({
