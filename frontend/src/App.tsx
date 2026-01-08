@@ -10,14 +10,14 @@ function App() {
     availableCarparkResponse[]
   >([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(true);
   const mapRef = useRef<CarparkMapRef>(null);
   useEffect(() => {
     if (searchTerm.trim() === "") {
-      setSearchResults([]);
       setIsLoading(false);
       return;
     }
-    
+
 
     setIsLoading(true);
     const timeoutId = setTimeout(() => {
@@ -47,8 +47,13 @@ function App() {
   }, [searchTerm]);
   const handleCarparkSelect = (carpark: availableCarparkResponse) => {
     mapRef.current?.panToCarpark(carpark.latitude, carpark.longitude);
-    setSearchTerm(""); // Clear search to hide dropdown
-  }
+    setIsDropdownVisible(false); // Hide dropdown
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setIsDropdownVisible(true); // Show dropdown when typing
+  };
   return (
     <>
     <div className="relative h-screen w-full">
@@ -57,8 +62,9 @@ function App() {
         value={searchTerm}
         searchResults={searchResults}
         isLoading={isLoading}
-        onChange={setSearchTerm}
+        onChange={handleSearchChange}
         onCarparkSelect={handleCarparkSelect}
+        isDropdownVisible={isDropdownVisible}
       />
       </div>
     </>
