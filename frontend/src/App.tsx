@@ -1,6 +1,6 @@
 import SearchBar from "@/components/SearchBar";
 import { availableCarparkResponse } from "@/types/types";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import CarparkMap from "./components/CarparkMap";
 import { CarparkMapRef } from "./components/CarparkMap";
 
@@ -10,8 +10,8 @@ function App() {
     availableCarparkResponse[]
   >([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDropdownVisible, setIsDropdownVisible] = useState(true);
   const mapRef = useRef<CarparkMapRef>(null);
+
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setIsLoading(false);
@@ -45,26 +45,26 @@ function App() {
       setIsLoading(false);
     };
   }, [searchTerm]);
-  const handleCarparkSelect = (carpark: availableCarparkResponse) => {
-    mapRef.current?.panToCarpark(carpark.latitude, carpark.longitude);
-    setIsDropdownVisible(false); // Hide dropdown
-  };
+  const handleCarparkSelect = useCallback((carpark: availableCarparkResponse) => {
+    mapRef.current?.panToCarpark(carpark.latitude, carpark.longitude, carpark);
+  }, []);
 
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    setIsDropdownVisible(true); // Show dropdown when typing
-  };
+  // Memoize searchResults to prevent new array references on every render
+  const memoizedSearchResults = useMemo(() => searchResults, [searchResults]);
+
+  // Memoize the empty array to prevent new references
+  const emptyArray = useMemo(() => [], []);
+
   return (
     <>
     <div className="relative h-screen w-full">
-      <CarparkMap ref={mapRef} carparks={searchResults || []} />
+      <CarparkMap ref={mapRef} carparks={memoizedSearchResults.length > 0 ? memoizedSearchResults : emptyArray} />
       <SearchBar
         value={searchTerm}
-        searchResults={searchResults}
+        searchResults={memoizedSearchResults}
         isLoading={isLoading}
-        onChange={handleSearchChange}
+        onChange={setSearchTerm}
         onCarparkSelect={handleCarparkSelect}
-        isDropdownVisible={isDropdownVisible}
       />
       </div>
     </>
