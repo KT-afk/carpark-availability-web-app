@@ -1,6 +1,7 @@
 from flask import current_app
 import requests
 from app import cache  # Import cache from __init__.py
+from app.services.rates_service import get_rate_for_carpark
 
 
 @cache.memoize(timeout=300)  # Cache for 5 minutes
@@ -18,7 +19,7 @@ def fetch_all_carparks():
 def transform_carpark(cp):
     """Transform single carpark to frontend format."""
     latitude, longitude = cp["Location"].split()
-    return {
+    base_data = {
         "carpark_num": cp["CarParkID"],
         "area": cp["Area"],
         "development": cp["Development"],
@@ -28,6 +29,9 @@ def transform_carpark(cp):
         "motorcycle_lots": cp["MotorcycleLots"],
         "heavy_vehicle_lots": cp["HeavyVehicleLots"]
     }
+    rate_info = get_rate_for_carpark(cp)
+    base_data.update(rate_info)
+    return base_data
 
 def filter_carparks(all_carparks, search_term):
     """Filter carparks by number."""
