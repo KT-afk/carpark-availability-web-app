@@ -8,4 +8,8 @@ export interface availableCarparkResponse {
     car_lots: number;
     heavy_vehicle_lots: number;
     motorcycle_lots: number;
+    weekdays_rate: string | null;
+    saturday_rate: string | null;
+    sunday_rate: string | null;
+    has_rate_info: boolean;
 }

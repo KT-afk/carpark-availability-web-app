@@ -20,7 +20,7 @@ class Config:
     
     # External API settings
     GOV_API_URL = 'https://datamall2.mytransport.sg/ltaodataservice/CarParkAvailabilityv2'
-    
+    RATES_API_URL = 'https://data.gov.sg/api/action/datastore_search?resource_id=d_9f6056bdb6b1dfba57f063593e4f34ae'
     # Application settings
     MAX_CARPARKS_RETURN = MAX_CARPARKS_RETURN
     REQUEST_TIMEOUT = REQUEST_TIMEOUT
