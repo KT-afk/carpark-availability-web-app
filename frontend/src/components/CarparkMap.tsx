@@ -1,9 +1,9 @@
 import { availableCarparkResponse } from "@/types/types";
 import { APIProvider, InfoWindow, Map, Marker, useMap } from "@vis.gl/react-google-maps";
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useImperativeHandle, useState, memo } from "react";
 
 export interface CarparkMapRef {
-  panToCarpark: (lat: number, lng: number) => void;
+  panToCarpark: (lat: number, lng: number, carpark?: availableCarparkResponse) => void;
 }
 
 interface CarparkMapProps {
@@ -17,10 +17,13 @@ const MapController = forwardRef<CarparkMapRef, { carparks: availableCarparkResp
     const [selectedCarpark, setSelectedCarpark] = useState<availableCarparkResponse | null>(null);
 
     useImperativeHandle(ref, () => ({
-      panToCarpark: (lat: number, lng: number) => {
+      panToCarpark: (lat: number, lng: number, carpark?: availableCarparkResponse) => {
         if (map) {
           map.panTo({ lat, lng });
           map.setZoom(17);
+        }
+        if (carpark) {
+          setSelectedCarpark(carpark);
         }
       }
     }));
@@ -39,7 +42,7 @@ const MapController = forwardRef<CarparkMapRef, { carparks: availableCarparkResp
             position={{ lat: selectedCarpark.latitude, lng: selectedCarpark.longitude }}
             onCloseClick={() => setSelectedCarpark(null)}
           >
-            <div>
+            <div className="pb-2">
               <p className="font-semibold text-gray-900">
                 Carpark Number: {selectedCarpark.carpark_num}
               </p>
@@ -72,6 +75,28 @@ const MapController = forwardRef<CarparkMapRef, { carparks: availableCarparkResp
                   )}
                 </div>
               </div>
+              {selectedCarpark.has_rate_info && (
+                <div className="mt-2 pt-2 border-t border-gray-100">
+                  <p className="text-xs text-gray-500 mb-1 font-semibold">Parking Rates:</p>
+                  <div className="flex flex-col gap-1">
+                    {selectedCarpark.weekdays_rate && (
+                      <span className="text-xs text-gray-600">
+                        Weekdays: {selectedCarpark.weekdays_rate}
+                      </span>
+                    )}
+                    {selectedCarpark.saturday_rate && (
+                      <span className="text-xs text-gray-600">
+                        Saturday: {selectedCarpark.saturday_rate}
+                      </span>
+                    )}
+                    {selectedCarpark.sunday_rate && (
+                      <span className="text-xs text-gray-600">
+                        Sunday/PH: {selectedCarpark.sunday_rate}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </InfoWindow>
         )}
@@ -80,8 +105,8 @@ const MapController = forwardRef<CarparkMapRef, { carparks: availableCarparkResp
   }
 );
 
-// Outer component
-const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(({ carparks }, ref) => {
+// Outer component - memoized to prevent re-renders from affecting siblings
+const CarparkMapComponent = forwardRef<CarparkMapRef, CarparkMapProps>(({ carparks }, ref) => {
   return (
     <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
       <Map
@@ -93,6 +118,11 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(({ carparks }, ref
       </Map>
     </APIProvider>
   );
+});
+
+// Memoize with custom comparison to only re-render when carparks array actually changes
+const CarparkMap = memo(CarparkMapComponent, (prevProps, nextProps) => {
+  return prevProps.carparks === nextProps.carparks;
 });
 
 export default CarparkMap;

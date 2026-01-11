@@ -1,5 +1,6 @@
 import { availableCarparkResponse } from "@/types/types";
 import { Loader2, Mic, Search } from "lucide-react";
+import { useRef } from "react";
 
 interface SearchBarProps {
   value: string;
@@ -7,7 +8,6 @@ interface SearchBarProps {
   isLoading: boolean;
   onChange: (value: string) => void;
   onCarparkSelect: (carpark: availableCarparkResponse) => void;
-  isDropdownVisible: boolean;
 }
 
 const SearchBar = ({
@@ -16,10 +16,25 @@ const SearchBar = ({
   isLoading,
   onChange,
   onCarparkSelect,
-  isDropdownVisible,
 }: SearchBarProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const shouldMaintainFocus = useRef(false);
+
+  const handleBlur = () => {
+    // If we should maintain focus and there's a value, refocus immediately
+    if (shouldMaintainFocus.current && value) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    }
+  };
+
+  const handleFocus = () => {
+    shouldMaintainFocus.current = true;
+  };
+
   const showDropdown =
-    value.trim() !== "" && isDropdownVisible && (isLoading || searchResults.length > 0);
+    value.trim() !== "" && (isLoading || searchResults.length > 0);
 
   return (
     <div className="flex fixed top-0 left-0 right-0 justify-center pt-4 px-4 z-30 p-4 pointer-events-none">
@@ -27,11 +42,15 @@ const SearchBar = ({
         <form onSubmit={(e) => e.preventDefault()} className="relative">
           <div className="relative">
             <input
+              ref={inputRef}
               type="text"
               value={value}
               onChange={(e) => onChange(e.target.value)}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
               className="w-full rounded-full border border-gray-200 bg-white px-5 py-3 pr-20 text-base shadow-md transition-shadow duration-200 hover:shadow-lg focus:border-gray-300 focus:outline-none"
               placeholder="Search for carpark number"
+              autoComplete="off"
             />
             <div className="absolute right-0 top-0 mr-4 mt-3 flex items-center">
               <button
@@ -63,7 +82,10 @@ const SearchBar = ({
                     <li
                       key={index}
                       className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                      onClick={() => onCarparkSelect(result)}
+                      onMouseDown={(e) => {
+                        e.preventDefault(); // Prevent focus loss
+                        onCarparkSelect(result);
+                      }}
                     >
                       <p className="font-semibold text-gray-900">
                         Carpark Number: {result.carpark_num}
@@ -97,6 +119,28 @@ const SearchBar = ({
                           )}
                         </div>
                       </div>
+                      {result.has_rate_info && (
+                        <div className="mt-2 pt-2 border-t border-gray-100">
+                          <p className="text-xs text-gray-500 mb-1 font-semibold">Parking Rates:</p>
+                          <div className="flex flex-col gap-1">
+                            {result.weekdays_rate && (
+                              <span className="text-xs text-gray-600">
+                                Weekdays: {result.weekdays_rate}
+                              </span>
+                            )}
+                            {result.saturday_rate && (
+                              <span className="text-xs text-gray-600">
+                                Saturday: {result.saturday_rate}
+                              </span>
+                            )}
+                            {result.sunday_rate && (
+                              <span className="text-xs text-gray-600">
+                                Sunday/PH: {result.sunday_rate}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>
