@@ -17,23 +17,30 @@ def create_app():
     cache.init_app(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 300})
 
     
-    # Initialize extensions with explicit CORS configuration
-    # In production, CORS_ORIGINS should be set to your frontend URL
+    # Initialize CORS - Allow all origins for public API
+    # Since carpark data is public government data, we allow all origins
     cors_origins = app.config.get('CORS_ORIGINS', '*')
-    if cors_origins == '*':
-        # Development mode - allow localhost
-        cors_origins = ["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173"]
-    else:
-        # Production mode - parse comma-separated origins
-        cors_origins = [origin.strip() for origin in cors_origins.split(',')]
     
-    CORS(app, resources={
-        r"/*": {
-            "origins": cors_origins,
-            "methods": ["GET", "POST", "OPTIONS"],
-            "allow_headers": ["Content-Type"]
-        }
-    })
+    if cors_origins == '*':
+        # Allow all origins (recommended for public APIs)
+        CORS(app, 
+             origins="*",
+             methods=["GET", "POST", "OPTIONS"],
+             allow_headers=["Content-Type", "Authorization"],
+             expose_headers=["Content-Type"],
+             supports_credentials=False
+        )
+    else:
+        # Explicit origins (comma-separated list from env var)
+        origins_list = [origin.strip() for origin in cors_origins.split(',')]
+        CORS(app, resources={
+            r"/*": {
+                "origins": origins_list,
+                "methods": ["GET", "POST", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"],
+                "expose_headers": ["Content-Type"]
+            }
+        })
     
     # Register blueprints (we'll create these)
     from app.routes.health import health_bp
