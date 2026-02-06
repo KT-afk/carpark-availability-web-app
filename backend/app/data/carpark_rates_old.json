@@ -1,0 +1,61 @@
+{
+  "carparks": [
+    {
+      "carpark_id": "313@somerset",
+      "name": "313@Somerset",
+      "weekday_rate": "$2.14 per half hour",
+      "weekday_rate_after_hours": "$3.21 per half hour after 5pm",
+      "saturday_rate": "$2.14 per half hour",
+      "sunday_rate": "$2.14 per half hour",
+      "note": "Orchard shopping area"
+    },
+    {
+      "carpark_id": "bugis+",
+      "name": "Bugis+",
+      "weekday_rate": "$1.07 per half hour for the first 3 hours, $2.14 per half hour after",
+      "saturday_rate": "$1.07 per half hour for the first 3 hours, $2.14 per half hour after",
+      "sunday_rate": "$1.07 per half hour for the first 3 hours, $2.14 per half hour after",
+      "note": "Bugis shopping area"
+    },
+    {
+      "carpark_id": "hdb",
+      "name": "HDB Carpark (Generic)",
+      "weekday_rate": "$0.60 per hour for first 2 hours, $1.20 per hour after",
+      "saturday_rate": "$0.60 per hour",
+      "sunday_rate": "$0.60 per hour",
+      "note": "Standard HDB rates"
+    },
+    {
+      "carpark_id": "marina_square",
+      "name": "Marina Square",
+      "weekday_rate": "$2.50 per hour",
+      "saturday_rate": "$3.00 per hour",
+      "sunday_rate": "$3.00 per hour",
+      "note": "Marina Bay area"
+    },
+    {
+      "carpark_id": "vivo_city",
+      "name": "VivoCity",
+      "weekday_rate": "$2.00 per hour on weekdays before 6pm, $1.00 per hour after 6pm",
+      "saturday_rate": "$2.50 per hour",
+      "sunday_rate": "$2.50 per hour",
+      "note": "Harbourfront shopping mall"
+    },
+    {
+      "carpark_id": "ion_orchard",
+      "name": "ION Orchard",
+      "weekday_rate": "$3.00 per hour for first 3 hours, $4.00 per hour after",
+      "saturday_rate": "$4.00 per hour",
+      "sunday_rate": "$4.00 per hour",
+      "note": "Premium Orchard mall"
+    },
+    {
+      "carpark_id": "default",
+      "name": "Standard Carpark",
+      "weekday_rate": "$1.20 per hour",
+      "saturday_rate": "$1.50 per hour",
+      "sunday_rate": "$1.50 per hour",
+      "note": "Default rates for carparks without specific pricing"
+    }
+  ]
+}

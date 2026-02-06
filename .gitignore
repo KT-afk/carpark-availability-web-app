@@ -1,0 +1,28 @@
+# bmad
+_bmad/
+.bmad/
+bmad.toml
+.bmad.toml
+.github/agents/bmad-*.agent.md
+
+# AI tools
+.claude/
+.gemini/
+.opencode/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Documentation (AI-generated)
+AI_IMPLEMENTATION_PLAN.md
+FEATURES_SUMMARY.md
+SETUP_GUIDE.md

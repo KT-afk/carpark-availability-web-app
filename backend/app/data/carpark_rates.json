@@ -1,0 +1,409 @@
+{
+  "carparks": [
+    {
+      "carpark_id": "313@somerset",
+      "name": "313@Somerset",
+      "weekday_rate": "$2.14 per half hour",
+      "weekday_rate_after_hours": "$3.21 per half hour after 5pm",
+      "saturday_rate": "$2.14 per half hour",
+      "sunday_rate": "$2.14 per half hour",
+      "note": "Orchard shopping area"
+    },
+    {
+      "carpark_id": "bugis+",
+      "name": "Bugis+",
+      "weekday_rate": "$1.07 per half hour for the first 3 hours, $2.14 per half hour after",
+      "saturday_rate": "$1.07 per half hour for the first 3 hours, $2.14 per half hour after",
+      "sunday_rate": "$1.07 per half hour for the first 3 hours, $2.14 per half hour after",
+      "note": "Bugis shopping area"
+    },
+    {
+      "carpark_id": "marina_square",
+      "name": "Marina Square",
+      "weekday_rate": "$2.50 per hour",
+      "saturday_rate": "$3.00 per hour",
+      "sunday_rate": "$3.00 per hour",
+      "note": "Marina Bay area"
+    },
+    {
+      "carpark_id": "vivo_city",
+      "name": "VivoCity",
+      "weekday_rate": "$2.00 per hour on weekdays before 6pm, $1.00 per hour after 6pm",
+      "saturday_rate": "$2.50 per hour",
+      "sunday_rate": "$2.50 per hour",
+      "note": "Harbourfront shopping mall"
+    },
+    {
+      "carpark_id": "ion_orchard",
+      "name": "ION Orchard",
+      "weekday_rate": "$3.00 per hour for first 3 hours, $4.00 per hour after",
+      "saturday_rate": "$4.00 per hour",
+      "sunday_rate": "$4.00 per hour",
+      "note": "Premium Orchard mall"
+    },
+    {
+      "carpark_id": "paragon",
+      "name": "Paragon Shopping Centre",
+      "weekday_rate": "$3.20/hr",
+      "weekday_rate_after_hours": "",
+      "saturday_rate": "$3.20/hr",
+      "sunday_rate": "$3.20/hr",
+      "note": "Orchard Road shopping mall"
+    },
+    {
+      "carpark_id": "ngee_ann_city",
+      "name": "Ngee Ann City (Takashimaya)",
+      "weekday_rate": "$3.00/hr",
+      "saturday_rate": "$3.00/hr",
+      "sunday_rate": "$3.00/hr",
+      "note": "Orchard Road"
+    },
+    {
+      "carpark_id": "plaza_singapura",
+      "name": "Plaza Singapura",
+      "weekday_rate": "$2.50/hr",
+      "saturday_rate": "$2.50/hr",
+      "sunday_rate": "$2.50/hr",
+      "note": "Orchard area shopping mall"
+    },
+    {
+      "carpark_id": "wisma_atria",
+      "name": "Wisma Atria",
+      "weekday_rate": "$2.80/hr",
+      "saturday_rate": "$2.80/hr",
+      "sunday_rate": "$2.80/hr",
+      "note": "Orchard Road"
+    },
+    {
+      "carpark_id": "suntec_city",
+      "name": "Suntec City",
+      "weekday_rate": "$2.00/hr first 2hrs, $3.00/hr after",
+      "saturday_rate": "$2.00/hr first 2hrs, $3.00/hr after",
+      "sunday_rate": "$2.00/hr first 2hrs, $3.00/hr after",
+      "note": "Marina area convention center"
+    },
+    {
+      "carpark_id": "raffles_city",
+      "name": "Raffles City",
+      "weekday_rate": "$2.70/hr weekdays, $2.00/hr after 6pm",
+      "saturday_rate": "$2.70/hr",
+      "sunday_rate": "$2.70/hr",
+      "note": "City Hall shopping mall",
+      "weekday_rate_after_hours": "$2.00/hr after 6pm"
+    },
+    {
+      "carpark_id": "millenia_walk",
+      "name": "Millenia Walk",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Marina area shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "marina_bay_sands",
+      "name": "Marina Bay Sands",
+      "weekday_rate": "$8/hr first 2hrs, $10/hr after",
+      "saturday_rate": "$8/hr first 2hrs, $10/hr after",
+      "sunday_rate": "$8/hr first 2hrs, $10/hr after",
+      "note": "Premium casino/hotel parking"
+    },
+    {
+      "carpark_id": "capitol_piazza",
+      "name": "Capitol Piazza",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "City Hall area - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "bugis_junction",
+      "name": "Bugis Junction",
+      "weekday_rate": "$2.20/hr",
+      "saturday_rate": "$2.20/hr",
+      "sunday_rate": "$2.20/hr",
+      "note": "Bugis shopping"
+    },
+    {
+      "carpark_id": "funan",
+      "name": "Funan",
+      "weekday_rate": "$2.00/hr",
+      "saturday_rate": "$2.00/hr",
+      "sunday_rate": "$2.00/hr",
+      "note": "City Hall shopping mall"
+    },
+    {
+      "carpark_id": "clarke_quay",
+      "name": "Clarke Quay Central",
+      "weekday_rate": "$2.50/hr weekdays, $1.50/hr after 6pm",
+      "saturday_rate": "$2.50/hr",
+      "sunday_rate": "$2.50/hr",
+      "note": "Riverside dining/entertainment",
+      "weekday_rate_after_hours": "$1.50/hr after 6pm"
+    },
+    {
+      "carpark_id": "great_world",
+      "name": "Great World",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "River Valley shopping mall - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "velocity",
+      "name": "Velocity @ Novena Square",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Novena area shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "united_square",
+      "name": "United Square",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Novena area shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "junction_8",
+      "name": "Junction 8",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Bishan shopping mall - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "bishan_park",
+      "name": "Bishan-Ang Mo Kio Park",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Popular park - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "ang_mo_kio_hub",
+      "name": "AMK Hub",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Ang Mo Kio shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "nex",
+      "name": "nex",
+      "weekday_rate": "$1.00/hr first 2hrs, $2.50/hr after",
+      "saturday_rate": "$1.00/hr first 2hrs, $2.50/hr after",
+      "sunday_rate": "$1.00/hr first 2hrs, $2.50/hr after",
+      "note": "Serangoon shopping mall"
+    },
+    {
+      "carpark_id": "compass_one",
+      "name": "Compass One",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Sengkang shopping mall - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "white_sands",
+      "name": "White Sands",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Pasir Ris shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "tampines_mall",
+      "name": "Tampines Mall",
+      "weekday_rate": "$1.00/hr first 3hrs, $2.00/hr after",
+      "saturday_rate": "$1.00/hr first 3hrs, $2.00/hr after",
+      "sunday_rate": "$1.00/hr first 3hrs, $2.00/hr after",
+      "note": "Tampines shopping"
+    },
+    {
+      "carpark_id": "tampines_1",
+      "name": "Tampines 1",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Tampines shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "century_square",
+      "name": "Century Square",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Tampines shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "bedok_mall",
+      "name": "Bedok Mall",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Bedok shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "eastpoint_mall",
+      "name": "Eastpoint Mall",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Simei shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "changi_city_point",
+      "name": "Changi City Point",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Changi Business Park - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "jewel_changi",
+      "name": "Jewel Changi Airport",
+      "weekday_rate": "$4/hr first 2hrs, $6/hr after",
+      "saturday_rate": "$4/hr first 2hrs, $6/hr after",
+      "sunday_rate": "$4/hr first 2hrs, $6/hr after",
+      "note": "Airport retail complex"
+    },
+    {
+      "carpark_id": "westgate",
+      "name": "Westgate",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Jurong East shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "jem",
+      "name": "JEM",
+      "weekday_rate": "$1.20/hr",
+      "saturday_rate": "$1.20/hr",
+      "sunday_rate": "$1.20/hr",
+      "note": "Jurong East shopping"
+    },
+    {
+      "carpark_id": "jcube",
+      "name": "JCube",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Jurong East shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "jurong_point",
+      "name": "Jurong Point",
+      "weekday_rate": "$1.00/hr first 2hrs, $1.50/hr after",
+      "saturday_rate": "$1.00/hr first 2hrs, $1.50/hr after",
+      "sunday_rate": "$1.00/hr first 2hrs, $1.50/hr after",
+      "note": "Boon Lay shopping"
+    },
+    {
+      "carpark_id": "lot_one",
+      "name": "Lot One Shoppers' Mall",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Choa Chu Kang shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "causeway_point",
+      "name": "Causeway Point",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Woodlands shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "northpoint_city",
+      "name": "Northpoint City",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Yishun shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "sembawang_shopping",
+      "name": "Sembawang Shopping Centre",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Sembawang area - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "clementi_mall",
+      "name": "Clementi Mall",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Clementi shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "star_vista",
+      "name": "The Star Vista",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Buona Vista shopping - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "sentosa",
+      "name": "Sentosa (Beach Parking)",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Tourist destination - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "resorts_world_sentosa",
+      "name": "Resorts World Sentosa",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Premium resort parking - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "gardens_by_the_bay",
+      "name": "Gardens by the Bay",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Tourist attraction - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "east_coast_park",
+      "name": "East Coast Park",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Popular beach park - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "singapore_zoo",
+      "name": "Singapore Zoo",
+      "weekday_rate": "TODO: $X per hour",
+      "saturday_rate": "TODO: $X per hour",
+      "sunday_rate": "TODO: $X per hour",
+      "note": "Tourist attraction - NEEDS RATE UPDATE"
+    },
+    {
+      "carpark_id": "hdb",
+      "name": "HDB Carpark (Generic)",
+      "weekday_rate": "$0.60 per hour for first 2 hours, $1.20 per hour after",
+      "saturday_rate": "$0.60 per hour",
+      "sunday_rate": "$0.60 per hour",
+      "note": "Standard HDB rates"
+    },
+    {
+      "carpark_id": "default",
+      "name": "Standard Carpark",
+      "weekday_rate": "$1.20 per hour",
+      "saturday_rate": "$1.50 per hour",
+      "sunday_rate": "$1.50 per hour",
+      "weekday_rate_after_hours": "",
+      "note": "Default rates for carparks without specific pricing - ESTIMATED ONLY"
+    }
+  ]
+}
