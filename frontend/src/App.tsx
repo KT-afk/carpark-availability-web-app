@@ -151,10 +151,19 @@ function App() {
         shouldGeocode = true;
       }
       
+      // Determine location to use for distance calculation
+      const locationToUse = searchLocation || (useGPSLocation ? userLocation : null);
+      
       const url = new URL(`${API_URL}/carparks`);
       url.searchParams.append("search", searchTerm);
       url.searchParams.append("duration", duration.toString());
       url.searchParams.append("day_type", dayType);
+      
+      // Send user location to backend for server-side sorting
+      if (locationToUse) {
+        url.searchParams.append("lat", locationToUse.lat.toString());
+        url.searchParams.append("lng", locationToUse.lng.toString());
+      }
 
       try {
         const response = await fetch(url);
@@ -172,6 +181,9 @@ function App() {
             allUrl.searchParams.append("search", ""); // Get all
             allUrl.searchParams.append("duration", duration.toString());
             allUrl.searchParams.append("day_type", dayType);
+            // Add geocoded location for sorting
+            allUrl.searchParams.append("lat", searchLocation.lat.toString());
+            allUrl.searchParams.append("lng", searchLocation.lng.toString());
             
             const allResponse = await fetch(allUrl);
             data = await allResponse.json();
@@ -182,56 +194,16 @@ function App() {
         
         console.log('🔍 Search type:', isNearMeSearch ? 'NEAR ME' : searchLocation ? 'ADDRESS' : 'REGULAR', 'Query:', searchTerm);
         
-        // Calculate distance if user location available AND GPS is enabled, OR if we geocoded an address
-        const locationToUse = searchLocation || (useGPSLocation ? userLocation : null);
-        
+        // Backend already sorted by distance and added distance field
+        // No need for frontend sorting anymore!
         if (locationToUse) {
-          console.log('📍 Calculating distances from:', locationToUse);
-          data.forEach((carpark: availableCarparkResponse) => {
-            const distance = calculateDistance(
-              locationToUse.lat,
-              locationToUse.lng,
-              carpark.latitude,
-              carpark.longitude
-            );
-            (carpark as any).distance = distance;
-          });
+          console.log('✅ Backend sorted results by distance from:', locationToUse);
           
-          // Smart sorting logic:
-          // 1. "Near me" or address search → sort by distance
-          // 2. Empty search (browsing) → sort by cost (cheapest first)
-          // 3. Specific search (e.g., "ion", "vivo") → keep backend ranking (relevance first)
-          
-          const isEmptySearch = !searchTerm || searchTerm.trim() === '';
-          
-          if (isNearMeSearch || searchLocation) {
-            // "Near me" or address search - prioritize distance
-            data.sort((a: any, b: any) => a.distance - b.distance);
-            console.log('📍 Sorted by distance (near me/address search)');
-          } else if (isEmptySearch) {
-            // Empty search (browsing all) - sort by cost
-            data.sort((a: any, b: any) => {
-              if (a.calculated_cost !== null && b.calculated_cost !== null) {
-                return a.calculated_cost - b.calculated_cost;
-              } else if (a.calculated_cost !== null) {
-                return -1;
-              } else if (b.calculated_cost !== null) {
-                return 1;
-              } else {
-                return a.distance - b.distance;
-              }
-            });
-            console.log('💰 Sorted by cost (empty search)');
-          } else {
-            // Specific search query - preserve backend ranking (smart search)
-            console.log(`🎯 Preserved backend ranking for search: "${searchTerm}"`);
-            // Don't sort - keep backend's smart search order!
-          }
-          
-          // For "near me" or address search, show top 50 for better Smart Recommendations
+          // For "near me" or address search, limit to top 50 for better UX
           if ((isNearMeSearch || searchLocation) && data.length > 50) {
             console.log(`📊 Limiting from ${data.length} to 50 closest carparks`);
             data = data.slice(0, 50);
+          }
           }
         } else {
           console.log('⚠️ No location available - cannot calculate distances');
@@ -261,19 +233,6 @@ function App() {
       clearTimeout(timeoutId);
     };
   }, [searchTerm, duration, dayType, userLocation, useGPSLocation]);
-  
-  // Calculate distance between two coordinates (Haversine formula)
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371; // Radius of Earth in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // Distance in km
-  };
   
   const handleCarparkSelect = (carpark: availableCarparkResponse) => {
     mapRef.current?.panToAndSelectCarpark(carpark);

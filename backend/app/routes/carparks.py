@@ -1,8 +1,23 @@
 from flask import Blueprint, jsonify, request
+import math
 
 from app.services.carpark_service import fetch_all_carparks, get_carparks
 
 carparks_bp = Blueprint('carparks', __name__)
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """Calculate distance between two points using Haversine formula"""
+    R = 6371  # Earth's radius in kilometers
+    
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lon = math.radians(lon2 - lon1)
+    
+    a = math.sin(delta_lat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    
+    return R * c
 
 @carparks_bp.route("/carparks", methods=["GET"])
 def search():
@@ -13,18 +28,34 @@ def search():
     - search: Search term for carpark filtering
     - duration: Parking duration in hours (triggers AI calculation)
     - day_type: weekday/saturday/sunday (default: weekday)
+    - lat: User latitude (for distance sorting)
+    - lng: User longitude (for distance sorting)
     """
     search_term = request.args.get('search', '')
     duration = request.args.get('duration', type=float)
     day_type = request.args.get('day_type', 'weekday')
+    user_lat = request.args.get('lat', type=float)
+    user_lng = request.args.get('lng', type=float)
     
     # Special handling for "near me" search - return all carparks
-    # Frontend will sort by distance
     if search_term.lower().strip() == 'near me':
         search_term = ''
     
     # Get basic carpark data
     carparks = get_carparks(search_term)
+    
+    # If user location provided, calculate distances and sort
+    if user_lat is not None and user_lng is not None:
+        for cp in carparks:
+            cp['distance'] = calculate_distance(
+                user_lat, user_lng,
+                cp['latitude'], cp['longitude']
+            )
+        
+        # Sort by distance (closest first) for empty/"near me" searches
+        # Preserve search ranking for specific queries
+        if not search_term or search_term.strip() == '':
+            carparks.sort(key=lambda x: x.get('distance', float('inf')))
     
     # If duration provided, calculate costs using AI
     # Only calculate for top 10 to optimize performance
