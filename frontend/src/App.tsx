@@ -33,6 +33,8 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
 }
 
 function App() {
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<
     availableCarparkResponse[]
@@ -150,7 +152,7 @@ function App() {
         shouldGeocode = true;
       }
       
-      const url = new URL("http://localhost:5001/carparks");
+      const url = new URL(`${API_URL}/carparks`);
       url.searchParams.append("search", searchTerm);
       url.searchParams.append("duration", duration.toString());
       url.searchParams.append("day_type", dayType);
@@ -167,7 +169,7 @@ function App() {
           if (searchLocation) {
             console.log('📍 Geocoded to:', searchLocation);
             // Fetch all carparks to find nearby ones
-            const allUrl = new URL("http://localhost:5001/carparks");
+            const allUrl = new URL(`${API_URL}/carparks`);
             allUrl.searchParams.append("search", ""); // Get all
             allUrl.searchParams.append("duration", duration.toString());
             allUrl.searchParams.append("day_type", dayType);
