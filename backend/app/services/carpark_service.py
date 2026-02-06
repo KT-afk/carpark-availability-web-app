@@ -147,8 +147,27 @@ def get_carparks(search_term=None):
         current_app.logger.error(f"❌ HDB fetch failed: {e}")
     
     # 2. Merge both lists
-    all_carparks = lta_carparks + hdb_carparks
-    current_app.logger.info(f"📊 Total: {len(all_carparks)} carparks combined")
+    # For empty/near me searches, interleave LTA and HDB to ensure both appear in top results
+    # For specific searches, keep natural order (search ranking matters)
+    if not search_term or not search_term.strip() or search_term.lower().strip() == 'near me':
+        # Interleave: alternate between LTA and HDB carparks
+        all_carparks = []
+        lta_idx, hdb_idx = 0, 0
+        while lta_idx < len(lta_carparks) or hdb_idx < len(hdb_carparks):
+            # Add 1 LTA
+            if lta_idx < len(lta_carparks):
+                all_carparks.append(lta_carparks[lta_idx])
+                lta_idx += 1
+            # Add 2 HDB (since there are many more HDB carparks)
+            for _ in range(2):
+                if hdb_idx < len(hdb_carparks):
+                    all_carparks.append(hdb_carparks[hdb_idx])
+                    hdb_idx += 1
+        current_app.logger.info(f"📊 Interleaved {len(all_carparks)} carparks (LTA+HDB mixed)")
+    else:
+        # Keep natural order for specific searches (relevance matters)
+        all_carparks = lta_carparks + hdb_carparks
+        current_app.logger.info(f"📊 Total: {len(all_carparks)} carparks combined (natural order)")
     
     # 3. Smart filter with aliases and ranking
     filtered = smart_filter_carparks(all_carparks, search_term or "")
