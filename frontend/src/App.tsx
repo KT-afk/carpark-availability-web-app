@@ -47,7 +47,6 @@ function App() {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [shouldSearchAfterLocation, setShouldSearchAfterLocation] = useState(false);
-  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [useGPSLocation, setUseGPSLocation] = useState(true); // Toggle to disable GPS
   const mapRef = useRef<CarparkMapRef>(null);
   
@@ -368,8 +367,6 @@ function App() {
         onDismissDropdown={handleDismissDropdown}
         onNearMeClick={handleNearMeClick}
         hasUserLocation={!!userLocation && useGPSLocation}
-        showAvailableOnly={showAvailableOnly}
-        onAvailableOnlyChange={setShowAvailableOnly}
         userLocation={useGPSLocation ? userLocation : null}
         duration={duration}
         dayType={dayType}
