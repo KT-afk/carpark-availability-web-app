@@ -4,3 +4,18 @@ body {
   margin: 0;
   min-height: 100vh;
 }
+
+/* Remove default Google Maps InfoWindow padding */
+.gm-style .gm-style-iw-c {
+  padding: 12px !important;
+}
+
+.gm-style .gm-style-iw-d {
+  overflow: auto !important;
+  max-height: none !important;
+}
+
+/* Remove extra top padding from InfoWindow content */
+.gm-style .gm-style-iw-tc::after {
+  top: 0 !important;
+}
