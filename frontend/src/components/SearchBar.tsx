@@ -199,6 +199,7 @@ const SearchBar = ({
                     <SmartRecommendations 
                       carparks={filteredResults} 
                       userLocation={userLocation}
+                      duration={duration}
                       onCarparkClick={handleResultClick}
                     />
                   </div>
