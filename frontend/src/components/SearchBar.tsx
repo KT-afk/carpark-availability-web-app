@@ -282,16 +282,6 @@ const SearchBar = ({
                   ))}
                 </ul>
                 </div>
-              ) : showAvailableOnly && searchResults.length > 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <p className="mb-2">No carparks with 50+ available lots</p>
-                  <button
-                    onClick={() => onAvailableOnlyChange(false)}
-                    className="text-blue-500 hover:text-blue-700 text-sm underline"
-                  >
-                    Show all results
-                  </button>
-                </div>
               ) : (
                 <div className="p-8 text-center text-gray-500">
                   No carparks found

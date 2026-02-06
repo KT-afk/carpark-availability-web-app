@@ -18,6 +18,7 @@ export interface availableCarparkResponse {
     car_lots: number;
     heavy_vehicle_lots: number;
     motorcycle_lots: number;
+    agency: string; // "HDB", "LTA", or "URA"
     
     // Pricing fields
     has_pricing: boolean;

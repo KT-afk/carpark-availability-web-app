@@ -204,7 +204,6 @@ function App() {
             console.log(`📊 Limiting from ${data.length} to 50 closest carparks`);
             data = data.slice(0, 50);
           }
-          }
         } else {
           console.log('⚠️ No location available - cannot calculate distances');
         }
