@@ -9,3 +9,11 @@ __pycache__/
 env/
 venv/
 *.env
+
+# Logs
+*.log
+
+# bmad
+.bmad/
+bmad.toml
+.bmad.toml
