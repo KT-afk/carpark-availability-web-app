@@ -16,8 +16,6 @@ interface SearchBarProps {
   onDismissDropdown: () => void;
   onNearMeClick?: () => void;
   hasUserLocation?: boolean;
-  showAvailableOnly: boolean;
-  onAvailableOnlyChange: (value: boolean) => void;
   userLocation: { lat: number; lng: number } | null;
   duration: number;
   dayType: 'weekday' | 'saturday' | 'sunday';
@@ -33,8 +31,6 @@ const SearchBar = ({
   onDismissDropdown,
   onNearMeClick,
   hasUserLocation = false,
-  showAvailableOnly,
-  onAvailableOnlyChange,
   userLocation,
   duration,
   dayType,
@@ -90,10 +86,8 @@ const SearchBar = ({
     }
   }, [searchResults, isLoading]);
 
-  // Filter results based on availability toggle
-  const filteredResults = showAvailableOnly
-    ? searchResults.filter(cp => cp.car_lots >= 50)
-    : searchResults;
+  // Don't filter - show all results regardless of availability
+  const filteredResults = searchResults;
 
   return (
     <div className="flex fixed top-0 left-0 right-0 justify-center pt-4 px-4 z-30 p-4 pointer-events-none">
@@ -155,11 +149,11 @@ const SearchBar = ({
 
           {showDropdown && (
             <div className="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200 max-h-96 overflow-y-auto">
-              {/* Header with dismiss button and filter */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 space-y-2">
+              {/* Header with dismiss button */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">
-                    {filteredResults.length} results{showAvailableOnly && ' with availability'}
+                    {filteredResults.length} results
                   </span>
                   <button
                     onClick={onDismissDropdown}
@@ -169,19 +163,6 @@ const SearchBar = ({
                     <X size={20} />
                   </button>
                 </div>
-                
-                {/* Availability filter toggle */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showAvailableOnly}
-                    onChange={(e) => onAvailableOnlyChange(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                  />
-                  <span className="text-sm text-gray-700">
-                    🚦 Only show available (50+ lots)
-                  </span>
-                </label>
               </div>
 
               {isLoading ? (
