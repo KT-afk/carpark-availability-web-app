@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate PWA Icons</title></head>
+<body>
+<canvas id="canvas" width="512" height="512"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// Draw 512x512 icon
+ctx.fillStyle = '#3B82F6';
+ctx.fillRect(0, 0, 512, 512);
+ctx.fillStyle = 'white';
+ctx.font = 'bold 280px Arial';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('P', 256, 280);
+ctx.fillStyle = '#10B981';
+ctx.beginPath();
+ctx.arc(400, 150, 50, 0, Math.PI * 2);
+ctx.fill();
+
+// Download 512x512
+canvas.toBlob(blob => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pwa-512x512.png';
+  a.click();
+  
+  // Generate 192x192
+  setTimeout(() => {
+    const small = document.createElement('canvas');
+    small.width = 192;
+    small.height = 192;
+    const sctx = small.getContext('2d');
+    sctx.drawImage(canvas, 0, 0, 192, 192);
+    small.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'pwa-192x192.png';
+      a.click();
+    });
+  }, 1000);
+});
+
+// Maskable versions (same for now)
+setTimeout(() => {
+  canvas.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pwa-maskable-512x512.png';
+    a.click();
+  });
+}, 2000);
+
+setTimeout(() => {
+  const small = document.createElement('canvas');
+  small.width = 192;
+  small.height = 192;
+  const sctx = small.getContext('2d');
+  sctx.drawImage(canvas, 0, 0, 192, 192);
+  small.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pwa-maskable-192x192.png';
+    a.click();
+  });
+}, 3000);
+</script>
+<p>Icons should download automatically. Check your Downloads folder.</p>
+</body>
+</html>
