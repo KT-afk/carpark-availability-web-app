@@ -229,10 +229,10 @@ function App() {
             // Don't sort - keep backend's smart search order!
           }
           
-          // For "near me" or address search, limit to closest 20 carparks
-          if ((isNearMeSearch || searchLocation) && data.length > 20) {
-            console.log(`📊 Limiting from ${data.length} to 20 closest carparks`);
-            data = data.slice(0, 20);
+          // For "near me" or address search, show top 50 for better Smart Recommendations
+          if ((isNearMeSearch || searchLocation) && data.length > 50) {
+            console.log(`📊 Limiting from ${data.length} to 50 closest carparks`);
+            data = data.slice(0, 50);
           }
         } else {
           console.log('⚠️ No location available - cannot calculate distances');
