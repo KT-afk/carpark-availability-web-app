@@ -121,11 +121,30 @@ def consolidate_carparks(carparks):
     return [consolidated[carpark_id] for carpark_id in order]
                 
 
-def get_carparks(search_term=None):
+def get_carparks(search_term=None, user_lat=None, user_lng=None):
     """
     Get carparks from both LTA and HDB sources, merged and filtered.
     Uses smart search with aliases and intelligent ranking.
+    
+    Args:
+        search_term: Search query (optional)
+        user_lat: User latitude for distance-based sorting (optional)
+        user_lng: User longitude for distance-based sorting (optional)
+    
+    Returns:
+        List of carparks, sorted by distance if location provided and search is empty
     """
+    from math import radians, sin, cos, sqrt, atan2
+    
+    def calculate_distance(lat1, lon1, lat2, lon2):
+        """Calculate distance using Haversine formula"""
+        R = 6371  # Earth radius in km
+        dlat = radians(lat2 - lat1)
+        dlon = radians(lon2 - lon1)
+        a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1-a))
+        return R * c
+    
     max_results = current_app.config['MAX_CARPARKS_RETURN']
     
     # 1. Fetch from BOTH sources
@@ -187,11 +206,33 @@ def get_carparks(search_term=None):
             f"🔝 Top 3 after consolidation: {[cp['Development'] for cp in consolidated_carparks[:3]]}"
         )
     
-    # 5. Transform and limit (filter out None values from bad data)
-    transformed = [transform_carpark(cp) for cp in consolidated_carparks[:max_results]]
+    # 5. Transform carparks
+    transformed = [transform_carpark(cp) for cp in consolidated_carparks]
     transformed = [cp for cp in transformed if cp is not None]
     
-    current_app.logger.info(f"📦 Returning {len(transformed)} carparks")
+    # 6. If user location provided AND it's a "near me" search, sort by distance BEFORE limiting
+    if user_lat is not None and user_lng is not None and (not search_term or search_term.strip() == ''):
+        # Add distance to all carparks
+        for cp in transformed:
+            cp['distance'] = calculate_distance(
+                user_lat, user_lng,
+                cp['latitude'], cp['longitude']
+            )
+        
+        # Sort by distance (closest first)
+        transformed.sort(key=lambda x: x.get('distance', float('inf')))
+        current_app.logger.info(f"📍 Distance-sorted {len(transformed)} carparks from user location")
+        
+        # Log closest carpark
+        if transformed:
+            closest = transformed[0]
+            current_app.logger.info(
+                f"📍 Closest: {closest['development']} ({closest['distance']:.2f}km)"
+            )
     
-    return transformed
+    # 7. Limit results
+    result = transformed[:max_results]
+    current_app.logger.info(f"📦 Returning {len(result)} carparks")
+    
+    return result
 

@@ -37,25 +37,22 @@ def search():
     user_lat = request.args.get('lat', type=float)
     user_lng = request.args.get('lng', type=float)
     
-    # Special handling for "near me" search - return all carparks
+    # Special handling for "near me" search - treat as empty search with location
     if search_term.lower().strip() == 'near me':
         search_term = ''
     
-    # Get basic carpark data
-    carparks = get_carparks(search_term)
+    # Get carparks (distance-sorted if location provided and no search term)
+    carparks = get_carparks(search_term, user_lat, user_lng)
     
-    # If user location provided, calculate distances and sort
-    if user_lat is not None and user_lng is not None:
+    # If user location provided but NOT already sorted (i.e., specific search with location)
+    # Add distances but preserve search ranking
+    if user_lat is not None and user_lng is not None and search_term and search_term.strip() != '':
         for cp in carparks:
-            cp['distance'] = calculate_distance(
-                user_lat, user_lng,
-                cp['latitude'], cp['longitude']
-            )
-        
-        # Sort by distance (closest first) for empty/"near me" searches
-        # Preserve search ranking for specific queries
-        if not search_term or search_term.strip() == '':
-            carparks.sort(key=lambda x: x.get('distance', float('inf')))
+            if 'distance' not in cp:
+                cp['distance'] = calculate_distance(
+                    user_lat, user_lng,
+                    cp['latitude'], cp['longitude']
+                )
     
     # If duration provided, calculate costs using AI
     # Only calculate for top 10 to optimize performance
