@@ -44,6 +44,7 @@ function App() {
   const [duration, setDuration] = useState<number>(2); // Default 2 hours
   const [dayType, setDayType] = useState<'weekday' | 'saturday' | 'sunday'>('weekday');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null); // Location to use for current search
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [shouldSearchAfterLocation, setShouldSearchAfterLocation] = useState(false);
@@ -120,6 +121,7 @@ function App() {
   // Auto-trigger "near me" search after location is obtained (if requested)
   useEffect(() => {
     if (userLocation && shouldSearchAfterLocation) {
+      setSearchLocation(userLocation); // Freeze location for this search
       setSearchTerm("near me");
       setIsDropdownVisible(true);
       setShouldSearchAfterLocation(false);
@@ -134,6 +136,10 @@ function App() {
     }
 
     setIsLoading(true);
+    
+    // Create AbortController to cancel previous requests
+    const abortController = new AbortController();
+    
     const timeoutId = setTimeout(async () => {
       // Try geocoding if search looks like address/postal code and returns no results
       let searchLocation: { lat: number; lng: number } | null = null;
@@ -152,7 +158,7 @@ function App() {
       }
       
       // Determine location to use for distance calculation
-      const locationToUse = searchLocation || (useGPSLocation ? userLocation : null);
+      const locationToUse = searchLocation || (useGPSLocation ? searchLocation : null);
       
       const url = new URL(`${API_URL}/carparks`);
       url.searchParams.append("search", searchTerm);
@@ -166,7 +172,7 @@ function App() {
       }
 
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, { signal: abortController.signal });
         let data = await response.json();
         
         // If no results and should geocode, try address search
@@ -222,6 +228,11 @@ function App() {
           }, 200);
         }
       } catch (error) {
+        // Ignore abort errors (they're expected when cancelling requests)
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.log('⏹️ Request cancelled');
+          return;
+        }
         console.error("Error fetching carparks:", error);
         setSearchResults([]);
         setIsLoading(false);
@@ -230,8 +241,9 @@ function App() {
 
     return () => {
       clearTimeout(timeoutId);
+      abortController.abort(); // Cancel ongoing request when effect re-runs
     };
-  }, [searchTerm, duration, dayType, userLocation, useGPSLocation]);
+  }, [searchTerm, duration, dayType, searchLocation, useGPSLocation]);
   
   const handleCarparkSelect = (carpark: availableCarparkResponse) => {
     mapRef.current?.panToAndSelectCarpark(carpark);
@@ -258,7 +270,8 @@ function App() {
     }
     
     if (userLocation) {
-      // Already have location - trigger search
+      // Already have location - capture it and trigger search
+      setSearchLocation(userLocation); // Freeze location for this search
       setSearchTerm("near me");
       setIsDropdownVisible(true);
     } else if (isGettingLocation) {
