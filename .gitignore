@@ -10,6 +10,17 @@ bmad.toml
 .gemini/
 .opencode/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+
 # OS files
 .DS_Store
 .DS_Store?
