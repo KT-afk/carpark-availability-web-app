@@ -142,7 +142,7 @@ function App() {
     
     const timeoutId = setTimeout(async () => {
       // Try geocoding if search looks like address/postal code and returns no results
-      let searchLocation: { lat: number; lng: number } | null = null;
+      let geocodedLocation: { lat: number; lng: number } | null = null;
       let shouldGeocode = false;
       
       // Check if search term looks like postal code (6 digits) or address
@@ -158,7 +158,7 @@ function App() {
       }
       
       // Determine location to use for distance calculation
-      const locationToUse = searchLocation || (useGPSLocation ? searchLocation : null);
+      const locationToUse = searchLocation || geocodedLocation || (useGPSLocation ? userLocation : null);
       
       const url = new URL(`${API_URL}/carparks`);
       url.searchParams.append("search", searchTerm);
@@ -178,18 +178,18 @@ function App() {
         // If no results and should geocode, try address search
         if (data.length === 0 && shouldGeocode) {
           console.log('📍 No direct results, trying geocoding for:', searchTerm);
-          searchLocation = await geocodeAddress(searchTerm);
+          geocodedLocation = await geocodeAddress(searchTerm);
           
-          if (searchLocation) {
-            console.log('📍 Geocoded to:', searchLocation);
+          if (geocodedLocation) {
+            console.log('📍 Geocoded to:', geocodedLocation);
             // Fetch all carparks to find nearby ones
             const allUrl = new URL(`${API_URL}/carparks`);
             allUrl.searchParams.append("search", ""); // Get all
             allUrl.searchParams.append("duration", duration.toString());
             allUrl.searchParams.append("day_type", dayType);
             // Add geocoded location for sorting
-            allUrl.searchParams.append("lat", searchLocation.lat.toString());
-            allUrl.searchParams.append("lng", searchLocation.lng.toString());
+            allUrl.searchParams.append("lat", geocodedLocation.lat.toString());
+            allUrl.searchParams.append("lng", geocodedLocation.lng.toString());
             
             const allResponse = await fetch(allUrl);
             data = await allResponse.json();
@@ -198,7 +198,7 @@ function App() {
         
         const isNearMeSearch = searchTerm.toLowerCase().trim() === 'near me';
         
-        console.log('🔍 Search type:', isNearMeSearch ? 'NEAR ME' : searchLocation ? 'ADDRESS' : 'REGULAR', 'Query:', searchTerm);
+        console.log('🔍 Search type:', isNearMeSearch ? 'NEAR ME' : geocodedLocation ? 'ADDRESS' : 'REGULAR', 'Query:', searchTerm);
         
         // Backend already sorted by distance and added distance field
         // No need for frontend sorting anymore!
@@ -206,7 +206,7 @@ function App() {
           console.log('✅ Backend sorted results by distance from:', locationToUse);
           
           // For "near me" or address search, limit to top 50 for better UX
-          if ((isNearMeSearch || searchLocation) && data.length > 50) {
+          if ((isNearMeSearch || geocodedLocation) && data.length > 50) {
             console.log(`📊 Limiting from ${data.length} to 50 closest carparks`);
             data = data.slice(0, 50);
           }
@@ -222,7 +222,7 @@ function App() {
         );
         
         // For "near me" or address searches, pan to the location
-        if ((isNearMeSearch || searchLocation) && data.length > 0 && locationToUse) {
+        if ((isNearMeSearch || geocodedLocation) && data.length > 0 && locationToUse) {
           setTimeout(() => {
             mapRef.current?.panToCarpark(locationToUse.lat, locationToUse.lng);
           }, 200);
