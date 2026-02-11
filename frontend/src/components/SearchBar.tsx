@@ -5,6 +5,7 @@ import { TimeBasedAlert } from "./TimeBasedAlert";
 import { FavoritesAndRecent } from "./FavoritesAndRecent";
 import { isFavorite, addFavorite, removeFavorite, addRecentSearch } from "@/services/localStorage";
 import { useState, useEffect, useRef } from "react";
+import { logger } from "@/utils/logger";
 
 interface SearchBarProps {
   value: string;
@@ -68,18 +69,11 @@ const SearchBar = ({
 
   // Auto-select carpark when favorite click triggers search results
   useEffect(() => {
-    console.log('🔍 useEffect triggered:', {
-      pendingSelect: pendingFavoriteSelect.current,
-      isLoading,
-      resultsCount: searchResults.length
-    });
-    
     if (pendingFavoriteSelect.current && !isLoading && searchResults.length > 0) {
       const carpark = searchResults.find(cp => cp.carpark_num === pendingFavoriteSelect.current);
-      console.log('🔍 Looking for carpark:', pendingFavoriteSelect.current, 'Found:', carpark?.development);
       
       if (carpark) {
-        console.log('✅ Auto-selecting favorite carpark:', carpark.development);
+        logger.debug('✅ Auto-selecting favorite carpark:', carpark.development);
         handleResultClick(carpark);
         pendingFavoriteSelect.current = null;
       }
@@ -135,7 +129,6 @@ const SearchBar = ({
               <FavoritesAndRecent
                 isVisible={showFavoritesPanel}
                 onFavoriteClick={(fav) => {
-                  console.log('⭐ Favorite clicked:', fav.development, fav.carpark_num);
                   // Search by development name (more specific than carpark number)
                   pendingFavoriteSelect.current = fav.carpark_num;
                   onChange(fav.development);

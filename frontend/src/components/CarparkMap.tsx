@@ -4,6 +4,7 @@ import { forwardRef, useImperativeHandle, useState, useEffect } from "react";
 import { Star, MapPin as MapPinIcon } from "lucide-react";
 import { isFavorite, addFavorite, removeFavorite } from "@/services/localStorage";
 import { getAddressAndPostalCode, GeocodeResult } from "@/services/geocoding";
+import { logger } from "@/utils/logger";
 
 export interface CarparkMapRef {
   panToCarpark: (lat: number, lng: number) => void;
@@ -32,21 +33,14 @@ const MapController = forwardRef<CarparkMapRef, {
     const [geocodeData, setGeocodeData] = useState<GeocodeResult>({ address: null, postalCode: null });
     const [loadingGeocode, setLoadingGeocode] = useState(false);
 
-    // Log when user location changes
-    useEffect(() => {
-      if (userLocation) {
-        console.log('🗺️ CarparkMap received userLocation:', userLocation);
-      }
-    }, [userLocation]);
-
     // Fetch address and postal code when carpark is selected
     useEffect(() => {
       if (selectedCarpark && showInfoWindow) {
-        console.log('🗺️ Fetching geocode data for:', selectedCarpark.development);
+        logger.debug('🗺️ Fetching geocode data for:', selectedCarpark.development);
         setLoadingGeocode(true);
         getAddressAndPostalCode(selectedCarpark.latitude, selectedCarpark.longitude)
           .then(data => {
-            console.log('🗺️ Geocode data received:', data);
+            logger.debug('🗺️ Geocode data received:', data);
             setGeocodeData(data);
             setLoadingGeocode(false);
           })
@@ -76,15 +70,15 @@ const MapController = forwardRef<CarparkMapRef, {
     useImperativeHandle(ref, () => ({
       panToCarpark: (lat: number, lng: number) => {
         if (map) {
-          console.log(`🗺️ Panning map to: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          logger.debug(`🗺️ Panning map to: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
           map.panTo({ lat, lng });
           map.setZoom(17);
-          console.log(`🗺️ Map center after pan:`, map.getCenter()?.toJSON());
+          logger.debug(`🗺️ Map center after pan:`, map.getCenter()?.toJSON());
         }
       },
       panToAndSelectCarpark: (carpark: availableCarparkResponse) => {
         if (map) {
-          console.log(`🗺️ Panning to and selecting: ${carpark.development}`);
+          logger.debug(`🗺️ Panning to and selecting: ${carpark.development}`);
           map.panTo({ lat: carpark.latitude, lng: carpark.longitude });
           map.setZoom(17);
           setSelectedCarpark(carpark);
@@ -92,12 +86,12 @@ const MapController = forwardRef<CarparkMapRef, {
         }
       },
       closeInfoWindow: () => {
-        console.log('🗺️ Closing InfoWindow (marker stays selected)');
+        logger.debug('🗺️ Closing InfoWindow (marker stays selected)');
         setShowInfoWindow(false);
         // Note: selectedCarpark stays set, so marker remains highlighted
       },
       clearSelection: () => {
-        console.log('🗺️ Clearing selection completely');
+        logger.debug('🗺️ Clearing selection completely');
         setSelectedCarpark(null);
         setShowInfoWindow(false);
       }

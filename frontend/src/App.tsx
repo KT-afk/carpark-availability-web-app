@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import CarparkMap from "./components/CarparkMap";
 import { CarparkMapRef } from "./components/CarparkMap";
 import { MapPin } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 // Geocode address/postal code to coordinates using Google Maps API
 async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
@@ -30,6 +31,25 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
     console.error('Geocoding error:', error);
     return null;
   }
+}
+
+function calculateDistanceKm(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 function App() {
@@ -73,8 +93,8 @@ function App() {
         setUserLocation(location);
         setIsGettingLocation(false);
         setLocationError(null);
-        console.log('📍 Location acquired:', location);
-        console.log('📍 Full position object:', {
+        logger.debug('📍 Location acquired:', location);
+        logger.debug('📍 Full position object:', {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           accuracy: position.coords.accuracy,
@@ -83,12 +103,12 @@ function App() {
           speed: position.coords.speed,
           timestamp: new Date(position.timestamp).toLocaleString()
         });
-        console.log('📍 Accuracy:', position.coords.accuracy, 'meters');
+        logger.debug('📍 Accuracy:', position.coords.accuracy, 'meters');
         
         // Pan map to user location immediately
         setTimeout(() => {
           mapRef.current?.panToCarpark(location.lat, location.lng);
-          console.log('📍 Map panned to user location');
+          logger.debug('📍 Map panned to user location');
         }, 500); // Small delay to ensure map is ready
       },
       (error) => {
@@ -152,10 +172,10 @@ function App() {
         /road|street|avenue|crescent|drive|lane|close|singapore/i.test(searchTerm) // Address keywords
       );
       
-      if (isPostalCode || looksLikeAddress) {
-        console.log('🔍 Detected address/postal code format, will try geocoding if needed');
-        shouldGeocode = true;
-      }
+        if (isPostalCode || looksLikeAddress) {
+          logger.debug('🔍 Detected address/postal code format, will try geocoding if needed');
+          shouldGeocode = true;
+        }
       
       // Determine location to use for distance calculation
       const locationToUse = searchLocation || geocodedLocation || (useGPSLocation ? userLocation : null);
@@ -177,11 +197,11 @@ function App() {
         
         // If no results and should geocode, try address search
         if (data.length === 0 && shouldGeocode) {
-          console.log('📍 No direct results, trying geocoding for:', searchTerm);
+          logger.debug('📍 No direct results, trying geocoding for:', searchTerm);
           geocodedLocation = await geocodeAddress(searchTerm);
           
           if (geocodedLocation) {
-            console.log('📍 Geocoded to:', geocodedLocation);
+            logger.debug('📍 Geocoded to:', geocodedLocation);
             // Fetch all carparks to find nearby ones
             const allUrl = new URL(`${API_URL}/carparks`);
             allUrl.searchParams.append("search", ""); // Get all
@@ -198,25 +218,36 @@ function App() {
         
         const isNearMeSearch = searchTerm.toLowerCase().trim() === 'near me';
         
-        console.log('🔍 Search type:', isNearMeSearch ? 'NEAR ME' : geocodedLocation ? 'ADDRESS' : 'REGULAR', 'Query:', searchTerm);
+        logger.debug('🔍 Search type:', isNearMeSearch ? 'NEAR ME' : geocodedLocation ? 'ADDRESS' : 'REGULAR', 'Query:', searchTerm);
         
-        // Backend already sorted by distance and added distance field
-        // No need for frontend sorting anymore!
-        if (locationToUse) {
-          console.log('✅ Backend sorted results by distance from:', locationToUse);
+        // Ensure distance sorting for "near me" searches (frontend safeguard)
+        if (locationToUse && isNearMeSearch) {
+          data = (data || []).map((cp: any) => ({
+            ...cp,
+            distance: cp.distance ?? calculateDistanceKm(
+              locationToUse.lat,
+              locationToUse.lng,
+              cp.latitude,
+              cp.longitude
+            )
+          }));
+          data.sort((a: any, b: any) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+          logger.debug('✅ Frontend sorted results by distance from:', locationToUse);
+        } else if (locationToUse) {
+          logger.debug('✅ Backend sorted results by distance from:', locationToUse);
           
           // For "near me" or address search, limit to top 50 for better UX
           if ((isNearMeSearch || geocodedLocation) && data.length > 50) {
-            console.log(`📊 Limiting from ${data.length} to 50 closest carparks`);
+            logger.debug(`📊 Limiting from ${data.length} to 50 closest carparks`);
             data = data.slice(0, 50);
           }
         } else {
-          console.log('⚠️ No location available - cannot calculate distances');
+          console.warn('No location available - cannot calculate distances');
         }
         
         setSearchResults(data || []);
         setIsLoading(false);
-        console.log(
+        logger.debug(
           `✅ Found ${data.length} carparks (${duration}hrs, ${dayType})`,
           locationToUse ? `| Nearest: ${(data[0] as any)?.distance?.toFixed(2)}km (${data[0]?.development})` : '| No GPS'
         );
@@ -230,7 +261,7 @@ function App() {
       } catch (error) {
         // Ignore abort errors (they're expected when cancelling requests)
         if (error instanceof Error && error.name === 'AbortError') {
-          console.log('⏹️ Request cancelled');
+          logger.debug('⏹️ Request cancelled');
           return;
         }
         console.error("Error fetching carparks:", error);

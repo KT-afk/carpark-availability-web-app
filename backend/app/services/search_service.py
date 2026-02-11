@@ -6,6 +6,7 @@ import json
 import os
 from typing import List, Dict, Tuple
 from flask import current_app
+from app.logging_utils import log_info
 
 # Cache for search aliases
 _search_aliases = None
@@ -30,7 +31,7 @@ def load_search_config():
         _search_aliases = config.get('mall_aliases', {})
         _popular_locations = set(config.get('popular_locations', []))
         
-        current_app.logger.info(f"✅ Loaded {len(_search_aliases)} search aliases")
+        log_info(f"✅ Loaded {len(_search_aliases)} search aliases")
         return _search_aliases, _popular_locations
         
     except Exception as e:
@@ -73,6 +74,8 @@ def match_score(carpark: Dict, search_terms: List[str]) -> Tuple[int, int]:
     """
     
     aliases, popular_locations = load_search_config()
+    if popular_locations is None:
+        popular_locations = []
     
     carpark_id = carpark.get("CarParkID", "").lower()
     area = carpark.get("Area", "").lower()
@@ -168,7 +171,7 @@ def smart_filter_carparks(all_carparks: List[Dict], search_term: str) -> List[Di
     
     # Expand search term with aliases
     search_terms = expand_search_term(search_term)
-    current_app.logger.info(f"🔍 Expanded '{search_term}' to: {search_terms}")
+    log_info(f"🔍 Expanded '{search_term}' to: {search_terms}")
     
     # Score all carparks
     scored_carparks = []
@@ -183,7 +186,7 @@ def smart_filter_carparks(all_carparks: List[Dict], search_term: str) -> List[Di
     # Extract just the carparks
     filtered = [cp for _, _, cp in scored_carparks]
     
-    current_app.logger.info(
+    log_info(
         f"✅ Smart filter: {len(filtered)} matches for '{search_term}' "
         f"(top match: {filtered[0]['Development'] if filtered else 'none'})"
     )

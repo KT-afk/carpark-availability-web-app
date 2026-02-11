@@ -30,9 +30,11 @@ class PricingService:
                         'note': carpark.get('note', '')
                     }
         except FileNotFoundError:
-            print(f"Warning: Pricing data file not found at {json_path}")
-        except json.JSONDecodeError as e:
-            print(f"Error parsing pricing data: {e}")
+            # Pricing data file not found
+            pass
+        except json.JSONDecodeError:
+            # Error parsing pricing data
+            pass
     
     def _normalize_carpark_id(self, carpark_id: str) -> str:
         """
