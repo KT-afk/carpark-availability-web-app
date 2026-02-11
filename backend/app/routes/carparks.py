@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 import math
 
 from app.services.carpark_service import fetch_all_carparks, get_carparks
@@ -38,11 +38,12 @@ def search():
     user_lng = request.args.get('lng', type=float)
     
     # Special handling for "near me" search - treat as empty search with location
-    if search_term.lower().strip() == 'near me':
+    is_near_me = search_term.lower().strip() == 'near me'
+    if is_near_me:
         search_term = ''
     
-    # Get carparks (distance-sorted if location provided and no search term)
-    carparks = get_carparks(search_term, user_lat, user_lng)
+    # Get carparks (distance-sorted if near me)
+    carparks = get_carparks(search_term, user_lat, user_lng, sort_by_distance=is_near_me)
     
     # If user location provided but NOT already sorted (i.e., specific search with location)
     # Add distances but preserve search ranking
@@ -68,7 +69,7 @@ def search():
             )
         except Exception as e:
             # Log error but return carparks without cost calculation
-            print(f"AI calculation error: {e}")
+            current_app.logger.error(f"AI calculation error: {e}")
             # Add error flag to response
             for cp in carparks:
                 if 'calculated_cost' not in cp:

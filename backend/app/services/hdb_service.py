@@ -7,6 +7,7 @@ import json
 import os
 from typing import List, Dict, Optional
 from flask import current_app
+from app.logging_utils import log_info
 
 # Cache for HDB carpark info (static data)
 _hdb_info_cache = None
@@ -30,7 +31,7 @@ def load_hdb_carpark_info() -> Dict[str, Dict]:
         # Convert to dict keyed by car_park_no for fast lookup
         _hdb_info_cache = {cp['car_park_no']: cp for cp in carparks}
         
-        current_app.logger.info(f"✅ Loaded {len(_hdb_info_cache)} HDB carpark info records")
+        log_info(f"✅ Loaded {len(_hdb_info_cache)} HDB carpark info records")
         return _hdb_info_cache
         
     except Exception as e:
@@ -88,7 +89,7 @@ def fetch_hdb_availability() -> Dict[str, Dict]:
                 'update_datetime': cp.get('update_datetime', '')
             }
         
-        current_app.logger.info(f"✅ Fetched availability for {len(availability)} HDB carparks")
+        log_info(f"✅ Fetched availability for {len(availability)} HDB carparks")
         return availability
         
     except Exception as e:
@@ -141,7 +142,7 @@ def get_hdb_carparks() -> List[Dict]:
         
         result.append(carpark)
     
-    current_app.logger.info(f"✅ Returning {len(result)} HDB carparks")
+    log_info(f"✅ Returning {len(result)} HDB carparks")
     return result
 
 def _extract_area_from_address(address: str) -> str:

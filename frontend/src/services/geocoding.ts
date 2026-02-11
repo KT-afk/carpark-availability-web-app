@@ -11,7 +11,6 @@ export async function getAddressAndPostalCode(lat: number, lng: number): Promise
   
   // Check cache first
   if (geocodeCache.has(cacheKey)) {
-    console.log('📮 Address from cache:', geocodeCache.get(cacheKey));
     return geocodeCache.get(cacheKey)!;
   }
   
@@ -23,12 +22,10 @@ export async function getAddressAndPostalCode(lat: number, lng: number): Promise
     }
     
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-    console.log('📮 Fetching address and postal code for:', lat, lng);
     
     const response = await fetch(url);
     const data = await response.json();
     
-    console.log('📮 Geocoding response status:', data.status);
     
     if (data.status === 'OK' && data.results.length > 0) {
       let postalCode: string | null = null;
@@ -50,8 +47,6 @@ export async function getAddressAndPostalCode(lat: number, lng: number): Promise
         }
       }
       
-      console.log('✅ Found address:', address);
-      console.log('✅ Found postal code:', postalCode);
       
       const result = { address, postalCode };
       geocodeCache.set(cacheKey, result);

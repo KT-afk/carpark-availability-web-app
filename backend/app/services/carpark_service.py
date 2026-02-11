@@ -4,6 +4,7 @@ from app import cache  # Import cache from __init__.py
 from app.services.pricing_service import pricing_service
 from app.services.hdb_service import get_hdb_carparks
 from app.services.search_service import smart_filter_carparks
+from app.logging_utils import log_info
 
 
 @cache.memoize(timeout=300)  # Cache for 5 minutes
@@ -121,7 +122,7 @@ def consolidate_carparks(carparks):
     return [consolidated[carpark_id] for carpark_id in order]
                 
 
-def get_carparks(search_term=None, user_lat=None, user_lng=None):
+def get_carparks(search_term=None, user_lat=None, user_lng=None, sort_by_distance=False):
     """
     Get carparks from both LTA and HDB sources, merged and filtered.
     Uses smart search with aliases and intelligent ranking.
@@ -132,7 +133,7 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None):
         user_lng: User longitude for distance-based sorting (optional)
     
     Returns:
-        List of carparks, sorted by distance if location provided and search is empty
+        List of carparks, optionally sorted by distance if location provided
     """
     from math import radians, sin, cos, sqrt, atan2
     
@@ -148,20 +149,20 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None):
     max_results = current_app.config['MAX_CARPARKS_RETURN']
     
     # 1. Fetch from BOTH sources
-    current_app.logger.info("🔍 Fetching carparks from LTA and HDB APIs...")
+    log_info("🔍 Fetching carparks from LTA and HDB APIs...")
     
     lta_carparks = []
     hdb_carparks = []
     
     try:
         lta_carparks = fetch_all_carparks()
-        current_app.logger.info(f"✅ LTA: {len(lta_carparks)} carparks")
+        log_info(f"✅ LTA: {len(lta_carparks)} carparks")
     except Exception as e:
         current_app.logger.error(f"❌ LTA fetch failed: {e}")
     
     try:
         hdb_carparks = fetch_all_hdb_carparks()
-        current_app.logger.info(f"✅ HDB: {len(hdb_carparks)} carparks")
+        log_info(f"✅ HDB: {len(hdb_carparks)} carparks")
     except Exception as e:
         current_app.logger.error(f"❌ HDB fetch failed: {e}")
     
@@ -182,18 +183,18 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None):
                 if hdb_idx < len(hdb_carparks):
                     all_carparks.append(hdb_carparks[hdb_idx])
                     hdb_idx += 1
-        current_app.logger.info(f"📊 Interleaved {len(all_carparks)} carparks (LTA+HDB mixed)")
+        log_info(f"📊 Interleaved {len(all_carparks)} carparks (LTA+HDB mixed)")
     else:
         # Keep natural order for specific searches (relevance matters)
         all_carparks = lta_carparks + hdb_carparks
-        current_app.logger.info(f"📊 Total: {len(all_carparks)} carparks combined (natural order)")
+        log_info(f"📊 Total: {len(all_carparks)} carparks combined (natural order)")
     
     # 3. Smart filter with aliases and ranking
     filtered = smart_filter_carparks(all_carparks, search_term or "")
     
     # Log top 3 before consolidation
     if search_term and filtered:
-        current_app.logger.info(
+        log_info(
             f"🔝 Top 3 before consolidation: {[cp['Development'] for cp in filtered[:3]]}"
         )
     
@@ -202,7 +203,7 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None):
     
     # Log top 3 after consolidation
     if search_term and consolidated_carparks:
-        current_app.logger.info(
+        log_info(
             f"🔝 Top 3 after consolidation: {[cp['Development'] for cp in consolidated_carparks[:3]]}"
         )
     
@@ -210,8 +211,8 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None):
     transformed = [transform_carpark(cp) for cp in consolidated_carparks]
     transformed = [cp for cp in transformed if cp is not None]
     
-    # 6. If user location provided AND it's a "near me" search, sort by distance BEFORE limiting
-    if user_lat is not None and user_lng is not None and (not search_term or search_term.strip() == ''):
+    # 6. If user location provided, add distance (and optionally sort)
+    if user_lat is not None and user_lng is not None:
         # Add distance to all carparks
         for cp in transformed:
             cp['distance'] = calculate_distance(
@@ -219,20 +220,20 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None):
                 cp['latitude'], cp['longitude']
             )
         
-        # Sort by distance (closest first)
-        transformed.sort(key=lambda x: x.get('distance', float('inf')))
-        current_app.logger.info(f"📍 Distance-sorted {len(transformed)} carparks from user location")
-        
-        # Log closest carpark
-        if transformed:
-            closest = transformed[0]
-            current_app.logger.info(
-                f"📍 Closest: {closest['development']} ({closest['distance']:.2f}km)"
-            )
+        if sort_by_distance:
+            # Sort by distance (closest first)
+            transformed.sort(key=lambda x: x.get('distance', float('inf')))
+            log_info(f"📍 Distance-sorted {len(transformed)} carparks from user location")
+            
+            # Log closest carpark
+            if transformed:
+                closest = transformed[0]
+                log_info(
+                    f"📍 Closest: {closest['development']} ({closest['distance']:.2f}km)"
+                )
     
     # 7. Limit results
     result = transformed[:max_results]
-    current_app.logger.info(f"📦 Returning {len(result)} carparks")
+    log_info(f"📦 Returning {len(result)} carparks")
     
     return result
-

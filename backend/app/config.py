@@ -20,6 +20,9 @@ class Config:
     
     # CORS settings
     CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*')
+
+    # Logging
+    DEBUG_LOGS = os.getenv('DEBUG_LOGS', 'False') == 'True'
     
     # External API settings
     GOV_API_URL = 'https://datamall2.mytransport.sg/ltaodataservice/CarParkAvailabilityv2'

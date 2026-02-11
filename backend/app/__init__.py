@@ -51,26 +51,26 @@ def create_app():
     
     # Pre-load data on startup to avoid cold start delay
     with app.app_context():
-        app.logger.info("🚀 Warming up cache...")
+        # Cache warm-up
         
         # Pre-load HDB carpark info (static data)
         from app.services.hdb_service import load_hdb_carpark_info
         load_hdb_carpark_info()
-        app.logger.info("✅ HDB info loaded")
+        # HDB info loaded
         
         # Pre-load search aliases
         from app.services.search_service import load_search_config
         load_search_config()
-        app.logger.info("✅ Search aliases loaded")
+        # Search aliases loaded
         
         # Warm up cache by fetching initial data
         try:
             from app.services.carpark_service import fetch_all_carparks, fetch_all_hdb_carparks
             fetch_all_carparks()
-            app.logger.info("✅ LTA data cached")
+            # LTA data cached
             fetch_all_hdb_carparks()
-            app.logger.info("✅ HDB availability cached")
-            app.logger.info("🎉 All data pre-loaded, ready to serve requests!")
+            # HDB availability cached
+            # Cache warm-up complete
         except Exception as e:
             app.logger.warning(f"⚠️ Cache warm-up failed: {e}")
     
