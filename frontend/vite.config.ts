@@ -6,6 +6,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  const apiUrl = env.VITE_API_URL || 'http://localhost:5001'
+  const backendHost = new URL(apiUrl).hostname
   
   return {
     plugins: [
@@ -57,8 +59,6 @@ export default defineConfig(({ mode }) => {
             {
               // Backend API - NetworkFirst for fresh data with fallback
               urlPattern: ({ url }) => {
-                const apiUrl = env.VITE_API_URL || 'http://localhost:5001'
-                const backendHost = new URL(apiUrl).hostname
                 return url.hostname === backendHost || url.hostname === 'localhost'
               },
               handler: 'NetworkFirst',
