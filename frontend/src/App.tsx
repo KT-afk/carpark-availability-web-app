@@ -4,7 +4,6 @@ import { availableCarparkResponse } from "@/types/types";
 import { useEffect, useState, useRef } from "react";
 import CarparkMap from "./components/CarparkMap";
 import { CarparkMapRef } from "./components/CarparkMap";
-import { MapPin } from "lucide-react";
 import { logger } from "@/utils/logger";
 
 // Geocode address/postal code to coordinates using Google Maps API
@@ -236,11 +235,7 @@ function App() {
         } else if (locationToUse) {
           logger.debug('✅ Backend sorted results by distance from:', locationToUse);
           
-          // For "near me" or address search, limit to top 50 for better UX
-          if ((isNearMeSearch || geocodedLocation) && data.length > 50) {
-            logger.debug(`📊 Limiting from ${data.length} to 50 closest carparks`);
-            data = data.slice(0, 50);
-          }
+          // No client-side truncation; use full backend results
         } else {
           console.warn('No location available - cannot calculate distances');
         }
