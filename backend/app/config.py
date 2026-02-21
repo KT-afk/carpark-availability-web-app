@@ -26,7 +26,6 @@ class Config:
     
     # External API settings
     GOV_API_URL = 'https://datamall2.mytransport.sg/ltaodataservice/CarParkAvailabilityv2'
-    HDB_API_URL = 'https://api.data.gov.sg/v1/transport/carpark-availability'
     
     # Application settings
     MAX_CARPARKS_RETURN = MAX_CARPARKS_RETURN

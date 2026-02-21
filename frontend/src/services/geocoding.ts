@@ -61,9 +61,3 @@ export async function getAddressAndPostalCode(lat: number, lng: number): Promise
     return { address: null, postalCode: null };
   }
 }
-
-// Legacy function for backward compatibility
-export async function getPostalCode(lat: number, lng: number): Promise<string | null> {
-  const result = await getAddressAndPostalCode(lat, lng);
-  return result.postalCode;
-}

@@ -2,8 +2,11 @@
 Pricing service for managing carpark rate data.
 """
 import json
+import logging
 import os
 from typing import Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 class PricingService:
     """Load and manage carpark pricing data."""
@@ -30,11 +33,9 @@ class PricingService:
                         'note': carpark.get('note', '')
                     }
         except FileNotFoundError:
-            # Pricing data file not found
-            pass
-        except json.JSONDecodeError:
-            # Error parsing pricing data
-            pass
+            logger.error("Pricing data file not found: %s", json_path)
+        except json.JSONDecodeError as e:
+            logger.error("Failed to parse pricing data file: %s", e)
     
     def _normalize_carpark_id(self, carpark_id: str) -> str:
         """
