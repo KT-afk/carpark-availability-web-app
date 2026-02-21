@@ -1,5 +1,5 @@
 import { availableCarparkResponse } from "@/types/types";
-import { Loader2, Mic, Search, X, MapPin, Star } from "lucide-react";
+import { Loader2, Search, X, MapPin, Star } from "lucide-react";
 import { SmartRecommendations } from "./SmartRecommendations";
 import { TimeBasedAlert } from "./TimeBasedAlert";
 import { FavoritesAndRecent } from "./FavoritesAndRecent";
@@ -80,9 +80,6 @@ const SearchBar = ({
     }
   }, [searchResults, isLoading]);
 
-  // Don't filter - show all results regardless of availability
-  const filteredResults = searchResults;
-
   return (
     <div className="flex fixed top-0 left-0 right-0 justify-center pt-4 px-4 z-30 p-4 pointer-events-none">
       <div className="w-full max-w-2xl pointer-events-auto">
@@ -110,15 +107,6 @@ const SearchBar = ({
                   <MapPin size={20} />
                 </button>
               )}
-              <button
-                type="button"
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-                onClick={() =>
-                  alert("Voice search is unsupported in this demo.")
-                }
-              >
-                <Mic size={20} />
-              </button>
               <Search size={20} className="text-blue-500" />
             </div>
           </div>
@@ -146,7 +134,7 @@ const SearchBar = ({
               <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">
-                    {filteredResults.length} results
+                    {searchResults.length} results
                   </span>
                   <button
                     onClick={onDismissDropdown}
@@ -166,12 +154,12 @@ const SearchBar = ({
                   />
                   <span className="text-gray-600">Searching...</span>
                 </div>
-              ) : filteredResults.length > 0 ? (
+              ) : searchResults.length > 0 ? (
                 <div>
                   {/* Smart Recommendations */}
                   <div className="px-4 pt-4">
                     <SmartRecommendations 
-                      carparks={filteredResults} 
+                      carparks={searchResults} 
                       userLocation={userLocation}
                       duration={duration}
                       onCarparkClick={handleResultClick}
@@ -180,7 +168,7 @@ const SearchBar = ({
                   
                   {/* Results list */}
                   <ul className="divide-y divide-gray-100">
-                    {filteredResults.map((result, index) => (
+                    {searchResults.map((result, index) => (
                     <li
                       key={index}
                       className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"

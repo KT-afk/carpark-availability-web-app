@@ -20,27 +20,14 @@ def create_app():
     # Initialize CORS - Allow all origins for public API
     # Since carpark data is public government data, we allow all origins
     cors_origins = app.config.get('CORS_ORIGINS', '*')
-    
-    if cors_origins == '*':
-        # Allow all origins (recommended for public APIs)
-        CORS(app, 
-             origins="*",
-             methods=["GET", "POST", "OPTIONS"],
-             allow_headers=["Content-Type", "Authorization"],
-             expose_headers=["Content-Type"],
-             supports_credentials=False
-        )
-    else:
-        # Explicit origins (comma-separated list from env var)
-        origins_list = [origin.strip() for origin in cors_origins.split(',')]
-        CORS(app, resources={
-            r"/*": {
-                "origins": origins_list,
-                "methods": ["GET", "POST", "OPTIONS"],
-                "allow_headers": ["Content-Type", "Authorization"],
-                "expose_headers": ["Content-Type"]
-            }
-        })
+    origins_value = "*" if cors_origins == '*' else [o.strip() for o in cors_origins.split(',')]
+    CORS(app,
+         origins=origins_value,
+         methods=["GET", "POST", "OPTIONS"],
+         allow_headers=["Content-Type", "Authorization"],
+         expose_headers=["Content-Type"],
+         supports_credentials=False
+    )
     
     # Register blueprints (we'll create these)
     from app.routes.health import health_bp

@@ -1,3 +1,4 @@
+from math import radians, sin, cos, sqrt, atan2
 from flask import current_app
 import requests
 from app import cache  # Import cache from __init__.py
@@ -5,6 +6,15 @@ from app.services.pricing_service import pricing_service
 from app.services.hdb_service import get_hdb_carparks
 from app.services.search_service import smart_filter_carparks
 from app.logging_utils import log_info
+
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """Calculate distance between two points using the Haversine formula (km)."""
+    R = 6371  # Earth radius in km
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+    return R * 2 * atan2(sqrt(a), sqrt(1 - a))
 
 
 @cache.memoize(timeout=300)  # Cache for 5 minutes
@@ -135,17 +145,6 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None, sort_by_distanc
     Returns:
         List of carparks, optionally sorted by distance if location provided
     """
-    from math import radians, sin, cos, sqrt, atan2
-    
-    def calculate_distance(lat1, lon1, lat2, lon2):
-        """Calculate distance using Haversine formula"""
-        R = 6371  # Earth radius in km
-        dlat = radians(lat2 - lat1)
-        dlon = radians(lon2 - lon1)
-        a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
-        c = 2 * atan2(sqrt(a), sqrt(1-a))
-        return R * c
-    
     max_results = current_app.config['MAX_CARPARKS_RETURN']
     
     # 1. Fetch from BOTH sources
