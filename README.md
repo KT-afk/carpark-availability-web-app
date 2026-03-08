@@ -81,7 +81,7 @@ Without our app, you'd never know Bugis+ is the winner!
 - **Framework:** Flask 3.1.0 (Python)
 - **AI:** Anthropic Claude 3.5 Sonnet
 - **Caching:** Flask-Caching (5-min TTL)
-- **APIs:** LTA DataMall (availability)
+- **APIs:** LTA DataMall (availability), data.gov.sg (HDB info, carpark rates)
 
 ### Frontend
 - **Framework:** React 19.2 + TypeScript 5.9
@@ -134,6 +134,20 @@ python run.py
 ```
 
 Backend runs on `http://localhost:5001`
+
+### Data Scripts
+
+```bash
+cd backend
+
+# Download HDB carpark coordinates (SVY21 → WGS84 conversion)
+python scripts/download_hdb_data.py
+
+# Download carpark rates from data.gov.sg and merge with manual overrides
+python scripts/download_carpark_rates.py
+```
+
+The rates script downloads 357 carpark rates from [data.gov.sg](https://data.gov.sg/) and merges them with manually curated rates in `backend/app/data/carpark_rates.json`. Manual entries take priority for matching carparks, ensuring accuracy for key locations.
 
 ### Frontend Setup
 
@@ -345,7 +359,7 @@ MIT License - feel free to use for learning or commercial projects.
 
 - **LTA DataMall** - Real-time availability data
 - **Anthropic** - Claude AI API
-- **data.gov.sg** - Static carpark rates dataset
+- **data.gov.sg** - HDB carpark coordinates & carpark rates (343 carparks)
 - **Google Maps** - Interactive maps
 
 ---
