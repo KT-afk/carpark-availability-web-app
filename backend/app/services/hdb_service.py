@@ -49,7 +49,7 @@ def fetch_hdb_availability() -> Dict[str, Dict]:
         if not api_key:
             current_app.logger.warning("⚠️ DATA_GOV_API_KEY not configured")
             return {}
-        client = SGDataClient(api_key)
+        client = SGDataClient(api_key=api_key)
         
         response = client.get_carpark_availability()
 
