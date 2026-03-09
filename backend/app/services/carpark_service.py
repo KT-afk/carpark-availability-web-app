@@ -30,7 +30,6 @@ def fetch_all_carparks():
     except requests.RequestException as e:
         raise Exception(f"Failed to fetch carpark data: {str(e)}")
 
-@cache.memoize(timeout=300)  # Cache for 5 minutes  
 def fetch_all_hdb_carparks():
     """Fetch carparks from HDB API"""
     try:

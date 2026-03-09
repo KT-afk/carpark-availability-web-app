@@ -52,10 +52,11 @@ def create_app():
         
         # Warm up cache by fetching initial data
         try:
-            from app.services.carpark_service import fetch_all_carparks, fetch_all_hdb_carparks
+            from app.services.carpark_service import fetch_all_carparks
+            from app.services.hdb_service import fetch_hdb_availability
             fetch_all_carparks()
             # LTA data cached
-            fetch_all_hdb_carparks()
+            fetch_hdb_availability()
             # HDB availability cached
             # Cache warm-up complete
         except Exception as e:

@@ -37,3 +37,19 @@ Thumbs.db
 AI_IMPLEMENTATION_PLAN.md
 FEATURES_SUMMARY.md
 SETUP_GUIDE.md
+*.docx
+
+# Node (root-level, not frontend)
+/node_modules/
+/package-lock.json
+/package.json
+
+# Scripts
+generate_ogp_doc.py
+
+# IDE
+.vscode/
+
+# OpenSpec / GitHub (backend-level)
+backend/.github/
+backend/openspec/

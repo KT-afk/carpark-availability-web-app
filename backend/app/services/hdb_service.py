@@ -2,12 +2,13 @@
 HDB Carpark Service - Fetches HDB carpark data from data.gov.sg API
 """
 
-import requests
 import json
 import os
-from typing import List, Dict, Optional
+from typing import List, Dict
 from flask import current_app
+from app import cache
 from app.logging_utils import log_info
+from sgdata import SGDataClient, LotType
 
 # Cache for HDB carpark info (static data)
 _hdb_info_cache = None
@@ -38,55 +39,36 @@ def load_hdb_carpark_info() -> Dict[str, Dict]:
         current_app.logger.error(f"❌ Failed to load HDB carpark info: {e}")
         return {}
 
+@cache.memoize(timeout=120)
 def fetch_hdb_availability() -> Dict[str, Dict]:
     """Fetch live HDB carpark availability from data.gov.sg"""
     
     try:
         api_key = current_app.config.get('DATA_GOV_API_KEY')
+        
         if not api_key:
             current_app.logger.warning("⚠️ DATA_GOV_API_KEY not configured")
             return {}
+        client = SGDataClient(api_key)
         
-        url = "https://api.data.gov.sg/v1/transport/carpark-availability"
-        headers = {"X-Api-Key": api_key}
-        
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        
-        data = response.json()
-        
-        # Extract carpark items
-        items = data.get('items', [])
-        if not items:
-            current_app.logger.warning("⚠️ No items in HDB availability response")
+        response = client.get_carpark_availability()
+
+        if not response.carparks:
+            current_app.logger.warning("⚠️ No carparks in HDB carpark availability response")
             return {}
-        
-        carpark_data = items[0].get('carpark_data', [])
-        
+
         # Convert to dict keyed by carpark_number
         availability = {}
-        for cp in carpark_data:
-            carpark_no = cp.get('carpark_number')
+        for cp in response.carparks:
+            carpark_no = cp.carpark_number
             if not carpark_no:
                 continue
-            
-            # Get availability for car lots (type 'C')
-            carpark_info = cp.get('carpark_info', [])
-            total_lots = 0
-            lots_available = 0
-            
-            for info in carpark_info:
-                if info.get('lot_type') == 'C':  # Car lots (not motorcycle/heavy)
-                    try:
-                        total_lots += int(info.get('total_lots', 0))
-                        lots_available += int(info.get('lots_available', 0))
-                    except (ValueError, TypeError):
-                        continue
-            
+
+            car_lot = cp.car_lots
             availability[carpark_no] = {
-                'total_lots': total_lots,
-                'lots_available': lots_available,
-                'update_datetime': cp.get('update_datetime', '')
+                'total_lots': car_lot.total_lots if car_lot else 0,
+                'lots_available': car_lot.available_lots if car_lot else 0,
+                'update_datetime': cp.updated_at.isoformat()
             }
         
         log_info(f"✅ Fetched availability for {len(availability)} HDB carparks")
@@ -126,7 +108,7 @@ def get_hdb_carparks() -> List[Dict]:
                 'Longitude': info['lng']
             },
             'AvailableLots': avail.get('lots_available', 0),
-            'LotType': 'C',
+            'LotType': LotType.CAR.value,
             'Agency': 'HDB',
             
             # Additional HDB-specific fields

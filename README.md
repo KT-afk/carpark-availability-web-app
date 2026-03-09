@@ -81,7 +81,8 @@ Without our app, you'd never know Bugis+ is the winner!
 - **Framework:** Flask 3.1.0 (Python)
 - **AI:** Anthropic Claude 3.5 Sonnet
 - **Caching:** Flask-Caching (5-min TTL)
-- **APIs:** LTA DataMall (availability), data.gov.sg (HDB info, carpark rates)
+- **APIs:** LTA DataMall (availability), data.gov.sg (HDB availability, carpark rates)
+- **SDK:** [SGData SDK](https://pypi.org/project/sgdata-sdk/) (self-built, type-safe Python wrapper for data.gov.sg)
 
 ### Frontend
 - **Framework:** React 19.2 + TypeScript 5.9
@@ -94,14 +95,17 @@ Without our app, you'd never know Bugis+ is the winner!
 ```
 ┌─────────────┐      ┌──────────────┐      ┌─────────────┐
 │   React     │─────▶│    Flask     │─────▶│ LTA DataMall│
-│  Frontend   │      │   Backend    │      │     API     │
+│  Frontend   │      │   Backend    │      │(Availability)│
 └─────────────┘      └──────────────┘      └─────────────┘
                             │
-                            ▼
-                     ┌──────────────┐
-                     │  Claude API  │
-                     │ (Rate Calc)  │
-                     └──────────────┘
+                     ┌──────┼──────┐
+                     ▼      ▼      ▼
+              ┌──────────┐ ┌──────────────┐ ┌──────────────┐
+              │Claude API│ │ data.gov.sg  │ │  Static JSON │
+              │(Rate Calc)│ │(HDB Avail.) │ │  (Rates,     │
+              └──────────┘ │ via SGData   │ │   Coords)    │
+                           │     SDK      │ └──────────────┘
+                           └──────────────┘
 ```
 
 ---
