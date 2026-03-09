@@ -32,24 +32,6 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
   }
 }
 
-function calculateDistanceKm(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
 
 function App() {
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
@@ -219,25 +201,10 @@ function App() {
         
         logger.debug('🔍 Search type:', isNearMeSearch ? 'NEAR ME' : geocodedLocation ? 'ADDRESS' : 'REGULAR', 'Query:', searchTerm);
         
-        // Ensure distance sorting for "near me" searches (frontend safeguard)
-        if (locationToUse && isNearMeSearch) {
-          data = (data || []).map((cp: any) => ({
-            ...cp,
-            distance: cp.distance ?? calculateDistanceKm(
-              locationToUse.lat,
-              locationToUse.lng,
-              cp.latitude,
-              cp.longitude
-            )
-          }));
-          data.sort((a: any, b: any) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-          logger.debug('✅ Frontend sorted results by distance from:', locationToUse);
-        } else if (locationToUse) {
+        if (locationToUse) {
           logger.debug('✅ Backend sorted results by distance from:', locationToUse);
-          
-          // No client-side truncation; use full backend results
         } else {
-          console.warn('No location available - cannot calculate distances');
+          logger.debug('No location available - distances not calculated');
         }
         
         setSearchResults(data || []);
