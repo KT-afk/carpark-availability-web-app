@@ -25,6 +25,9 @@ export interface availableCarparkResponse {
     has_specific_pricing?: boolean;
     pricing: PricingInfo | null;
     
+    // Distance from search location (km), present when lat/lng sent to backend
+    distance?: number;
+
     // AI-calculated fields (present when duration is provided)
     calculated_cost: number | null;
     cost_breakdown: string | null;

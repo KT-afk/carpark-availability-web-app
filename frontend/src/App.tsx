@@ -211,7 +211,7 @@ function App() {
         setIsLoading(false);
         logger.debug(
           `✅ Found ${data.length} carparks (${duration}hrs, ${dayType})`,
-          locationToUse ? `| Nearest: ${(data[0] as any)?.distance?.toFixed(2)}km (${data[0]?.development})` : '| No GPS'
+          locationToUse ? `| Nearest: ${data[0]?.distance?.toFixed(2)}km (${data[0]?.development})` : '| No GPS'
         );
         
         // For "near me" or address searches, pan to the location
@@ -315,11 +315,13 @@ function App() {
         </div>
       )}
       
-      <CarparkMap 
-        ref={mapRef} 
-        carparks={searchResults || []} 
+      <CarparkMap
+        ref={mapRef}
+        carparks={searchResults || []}
         onMapClick={handleDismissDropdown}
         userLocation={userLocation}
+        duration={duration}
+        dayType={dayType}
       />
       <SearchBar
         value={searchTerm}
