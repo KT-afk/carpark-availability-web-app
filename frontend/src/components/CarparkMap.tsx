@@ -110,6 +110,14 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
     const [showPanel, setShowPanel] = useState(false);
     const mapControllerRef = useRef<MapControllerHandle>(null);
 
+    // Sync selectedCarpark when carparks prop updates (e.g. duration/dayType change)
+    useEffect(() => {
+      if (selectedCarpark) {
+        const updated = carparks.find(cp => cp.carpark_num === selectedCarpark.carpark_num);
+        if (updated) setSelectedCarpark(updated);
+      }
+    }, [carparks]);
+
     useImperativeHandle(ref, () => ({
       panToCarpark: (lat: number, lng: number) => {
         mapControllerRef.current?.panToLocation(lat, lng);
