@@ -1,6 +1,6 @@
 import { availableCarparkResponse } from "@/types/types";
 import { APIProvider, Map, Marker, useMap } from "@vis.gl/react-google-maps";
-import { forwardRef, useImperativeHandle, useState, useRef } from "react";
+import { forwardRef, useImperativeHandle, useState, useRef, useEffect } from "react";
 import { CarparkPanel } from "./CarparkPanel";
 import { logger } from "@/utils/logger";
 
