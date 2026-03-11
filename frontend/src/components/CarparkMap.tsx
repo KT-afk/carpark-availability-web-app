@@ -1,5 +1,5 @@
 import { availableCarparkResponse } from "@/types/types";
-import { APIProvider, Map, Marker, useMap } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, Marker, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { forwardRef, useImperativeHandle, useState, useRef, useEffect } from "react";
 import { CarparkPanel } from "./CarparkPanel";
 import { logger } from "@/utils/logger";
@@ -21,6 +21,36 @@ interface CarparkMapProps {
 
 interface MapControllerHandle {
   panToLocation: (lat: number, lng: number) => void;
+}
+
+function markerColor(lots: number): string {
+  if (lots > 10) return '#22c55e';
+  if (lots > 0) return '#f97316';
+  return '#ef4444';
+}
+
+function CarparkMarker({ lots, selected }: { lots: number; selected: boolean }) {
+  const bg = markerColor(lots);
+  return (
+    <div style={{
+      background: bg,
+      borderRadius: '50%',
+      width: selected ? 36 : 28,
+      height: selected ? 36 : 28,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: selected
+        ? `0 0 0 3px #fff, 0 0 0 5px ${bg}`
+        : '0 2px 4px rgba(0,0,0,0.35)',
+      transition: 'all 0.15s ease',
+      cursor: 'pointer',
+    }}>
+      <svg width={selected ? 20 : 16} height={selected ? 20 : 16} viewBox="0 0 24 24" fill="white">
+        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+      </svg>
+    </div>
+  );
 }
 
 // Inner component — must be inside <Map> to use useMap()
@@ -65,39 +95,27 @@ const MapController = forwardRef<MapControllerHandle, {
       {carparks.map(carpark => {
         const isSelected = selectedCarpark?.carpark_num === carpark.carpark_num;
         return (
-          <Marker
+          <AdvancedMarker
             key={carpark.carpark_num}
             position={{ lat: carpark.latitude, lng: carpark.longitude }}
             onClick={() => onSelect(carpark)}
-            icon={isSelected ? {
-              path: google.maps.SymbolPath.CIRCLE,
-              fillColor: '#EF4444',
-              fillOpacity: 1,
-              strokeColor: '#FFFFFF',
-              strokeWeight: 3,
-              scale: 12,
-            } : undefined}
             zIndex={isSelected ? 100 : 1}
-          />
+          >
+            <CarparkMarker lots={carpark.car_lots} selected={isSelected} />
+          </AdvancedMarker>
         );
       })}
 
       {/* Keep selected marker visible even if not in current search results */}
       {selectedCarpark && !carparks.some(cp => cp.carpark_num === selectedCarpark.carpark_num) && (
-        <Marker
+        <AdvancedMarker
           key={`selected-${selectedCarpark.carpark_num}`}
           position={{ lat: selectedCarpark.latitude, lng: selectedCarpark.longitude }}
           onClick={() => onSelect(selectedCarpark)}
-          icon={{
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: '#EF4444',
-            fillOpacity: 1,
-            strokeColor: '#FFFFFF',
-            strokeWeight: 3,
-            scale: 12,
-          }}
           zIndex={100}
-        />
+        >
+          <CarparkMarker lots={selectedCarpark.car_lots} selected={true} />
+        </AdvancedMarker>
       )}
     </>
   );
