@@ -5,8 +5,13 @@ Download HDB carpark information and convert SVY21 to WGS84 coordinates.
 
 import requests
 import json
+import os
+import sys
 import time
 from pyproj import Transformer
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from app.utils.svy21 import wgs84_to_svy21
 
 # SVY21 to WGS84 transformer
 transformer = Transformer.from_crs("EPSG:3414", "EPSG:4326", always_xy=True)
@@ -85,11 +90,14 @@ def process_carpark_data(records):
                 skipped += 1
                 continue
             
+            northing, easting = wgs84_to_svy21(lat, lng)
             processed.append({
                 'car_park_no': record.get('car_park_no', ''),
                 'address': record.get('address', ''),
                 'lat': round(lat, 6),
                 'lng': round(lng, 6),
+                'northing': northing,
+                'easting': easting,
                 'car_park_type': record.get('car_park_type', ''),
                 'type_of_parking_system': record.get('type_of_parking_system', ''),
                 'short_term_parking': record.get('short_term_parking', ''),

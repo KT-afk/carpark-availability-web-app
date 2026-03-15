@@ -1,5 +1,6 @@
 import SearchBar from "@/components/SearchBar";
 import { DurationSelector } from "@/components/DurationSelector";
+import { RadiusSelector } from "@/components/RadiusSelector";
 import { availableCarparkResponse } from "@/types/types";
 import { useEffect, useState, useRef } from "react";
 import CarparkMap from "./components/CarparkMap";
@@ -44,6 +45,9 @@ function App() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(true);
   const [duration, setDuration] = useState<number>(2); // Default 2 hours
   const [dayType, setDayType] = useState<'weekday' | 'saturday' | 'sunday'>('weekday');
+  const [radius, setRadius] = useState<number>(1000); // metres
+  const [searchType, setSearchType] = useState<'text' | 'radius'>('text');
+  const [searchCentre, setSearchCentre] = useState<{ lat: number; lng: number } | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null); // Location to use for current search
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -132,6 +136,8 @@ function App() {
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setSearchResults([]);
+      setSearchType('text');
+      setSearchCentre(null);
       setIsLoading(false);
       return;
     }
@@ -165,6 +171,7 @@ function App() {
       url.searchParams.append("search", searchTerm);
       url.searchParams.append("duration", duration.toString());
       url.searchParams.append("day_type", dayType);
+      url.searchParams.append("radius", radius.toString());
       
       // Send user location to backend for server-side sorting
       if (locationToUse) {
@@ -174,13 +181,16 @@ function App() {
 
       try {
         const response = await fetch(url, { signal: abortController.signal });
-        let data = await response.json();
-        
+        const json = await response.json();
+        let data: availableCarparkResponse[] = json.carparks || [];
+        const respSearchType: 'text' | 'radius' = json.search_type || 'text';
+        const respSearchCentre: { lat: number; lng: number } | null = json.search_centre || null;
+
         // If no results and should geocode, try address search
         if (data.length === 0 && shouldGeocode) {
           logger.debug('📍 No direct results, trying geocoding for:', searchTerm);
           geocodedLocation = await geocodeAddress(searchTerm);
-          
+
           if (geocodedLocation) {
             logger.debug('📍 Geocoded to:', geocodedLocation);
             // Fetch all carparks to find nearby ones
@@ -191,33 +201,37 @@ function App() {
             // Add geocoded location for sorting
             allUrl.searchParams.append("lat", geocodedLocation.lat.toString());
             allUrl.searchParams.append("lng", geocodedLocation.lng.toString());
-            
+
             const allResponse = await fetch(allUrl);
-            data = await allResponse.json();
+            const allJson = await allResponse.json();
+            data = allJson.carparks || [];
           }
         }
-        
+
         const isNearMeSearch = searchTerm.toLowerCase().trim() === 'near me';
-        
-        logger.debug('🔍 Search type:', isNearMeSearch ? 'NEAR ME' : geocodedLocation ? 'ADDRESS' : 'REGULAR', 'Query:', searchTerm);
-        
+
+        logger.debug('🔍 Search type:', respSearchType, 'Query:', searchTerm);
+        setSearchType(respSearchType);
+        setSearchCentre(respSearchCentre);
+
         if (locationToUse) {
           logger.debug('✅ Backend sorted results by distance from:', locationToUse);
         } else {
           logger.debug('No location available - distances not calculated');
         }
-        
-        setSearchResults(data || []);
+
+        setSearchResults(data);
         setIsLoading(false);
         logger.debug(
           `✅ Found ${data.length} carparks (${duration}hrs, ${dayType})`,
           locationToUse ? `| Nearest: ${data[0]?.distance?.toFixed(2)}km (${data[0]?.development})` : '| No GPS'
         );
-        
+
         // For "near me" or address searches, pan to the location
-        if ((isNearMeSearch || geocodedLocation) && data.length > 0 && locationToUse) {
+        const panTarget = respSearchCentre || (isNearMeSearch ? locationToUse : null) || (geocodedLocation ? geocodedLocation : null);
+        if (panTarget && data.length > 0) {
           setTimeout(() => {
-            mapRef.current?.panToCarpark(locationToUse.lat, locationToUse.lng);
+            mapRef.current?.panToCarpark(panTarget.lat, panTarget.lng);
           }, 200);
         }
       } catch (error) {
@@ -228,6 +242,8 @@ function App() {
         }
         console.error("Error fetching carparks:", error);
         setSearchResults([]);
+        setSearchType('text');
+        setSearchCentre(null);
         setIsLoading(false);
       }
     }, 100); // Reduced from 150ms to 100ms for faster response
@@ -236,7 +252,7 @@ function App() {
       clearTimeout(timeoutId);
       abortController.abort(); // Cancel ongoing request when effect re-runs
     };
-  }, [searchTerm, duration, dayType, searchLocation, useGPSLocation]);
+  }, [searchTerm, duration, dayType, radius, searchLocation, useGPSLocation]);
   
   const handleCarparkSelect = (carpark: availableCarparkResponse) => {
     mapRef.current?.panToAndSelectCarpark(carpark);
@@ -337,6 +353,16 @@ function App() {
         duration={duration}
         dayType={dayType}
       />
+      {searchType === 'radius' && (
+        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4 z-20 mt-2">
+          <RadiusSelector
+            radius={radius}
+            onChange={setRadius}
+            resultCount={searchResults.length}
+            placeName={searchTerm}
+          />
+        </div>
+      )}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4 z-20">
         <DurationSelector
           duration={duration}
