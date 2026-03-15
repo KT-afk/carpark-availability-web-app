@@ -1,20 +1,17 @@
-from math import radians, sin, cos, sqrt, atan2
 from flask import current_app
 import requests
 from app import cache  # Import cache from __init__.py
 from app.services.pricing_service import pricing_service
 from app.services.hdb_service import get_hdb_carparks
-from app.services.search_service import smart_filter_carparks
+from app.services.search_service import smart_filter_carparks, detect_search_intent
+from app.services.geocoding_service import geocode_place
 from app.logging_utils import log_info
+from app.utils.svy21 import wgs84_to_svy21, svy21_distance_km
 
 
-def calculate_distance(lat1, lon1, lat2, lon2):
-    """Calculate distance between two points using the Haversine formula (km)."""
-    R = 6371  # Earth radius in km
-    dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
-    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
-    return R * 2 * atan2(sqrt(a), sqrt(1 - a))
+def calculate_distance(n1: float, e1: float, n2: float, e2: float) -> float:
+    """Calculate distance in km between two SVY21 points (northing, easting)."""
+    return svy21_distance_km(n1, e1, n2, e2)
 
 
 @cache.memoize(timeout=300)  # Cache for 5 minutes
@@ -63,13 +60,25 @@ def transform_carpark(cp):
     # Extract address if available (HDB carparks have detailed address info)
     address = cp.get("Address", development)  # Fallback to development name
     
+    lat_f = float(latitude)
+    lng_f = float(longitude)
+
+    # Use pre-computed SVY21 if available (HDB), otherwise convert now (LTA)
+    if "northing" in cp and "easting" in cp:
+        northing = cp["northing"]
+        easting = cp["easting"]
+    else:
+        northing, easting = wgs84_to_svy21(lat_f, lng_f)
+
     return {
         "carpark_num": carpark_id,
         "area": cp["Area"],
         "development": development,
         "address": address,
-        "latitude": float(latitude),
-        "longitude": float(longitude),
+        "latitude": lat_f,
+        "longitude": lng_f,
+        "northing": northing,
+        "easting": easting,
         "car_lots": cp.get("CarLots", 0),
         "motorcycle_lots": cp.get("MotorcycleLots", 0),
         "heavy_vehicle_lots": cp.get("HeavyVehicleLots", 0),
@@ -78,6 +87,14 @@ def transform_carpark(cp):
         "pricing": pricing_info,
         "agency": cp.get("Agency", "LTA")  # Track data source
     }
+
+def filter_by_radius(carparks: list, centre_n: float, centre_e: float, radius_m: float) -> list:
+    """Filter transformed carparks to those within radius_m metres of centre (SVY21)."""
+    return [
+        cp for cp in carparks
+        if svy21_distance_km(centre_n, centre_e, cp['northing'], cp['easting']) * 1000 <= radius_m
+    ]
+
 
 def filter_carparks(all_carparks, search_term):
     """Filter carparks by number."""
@@ -131,107 +148,116 @@ def consolidate_carparks(carparks):
     return [consolidated[carpark_id] for carpark_id in order]
                 
 
-def get_carparks(search_term=None, user_lat=None, user_lng=None, sort_by_distance=False):
+def get_carparks(search_term=None, user_lat=None, user_lng=None, sort_by_distance=False, radius_m=1000):
     """
     Get carparks from both LTA and HDB sources, merged and filtered.
     Uses smart search with aliases and intelligent ranking.
-    
+
     Args:
         search_term: Search query (optional)
         user_lat: User latitude for distance-based sorting (optional)
         user_lng: User longitude for distance-based sorting (optional)
-    
+        sort_by_distance: Sort results by distance (used for near me)
+        radius_m: Radius in metres for place name searches (default 1000m)
+
     Returns:
-        List of carparks, optionally sorted by distance if location provided
+        (carparks, search_type, search_centre) tuple:
+          - carparks: list of carpark dicts
+          - search_type: 'radius' | 'text'
+          - search_centre: (lat, lng) centre used for radius search, or None
     """
     max_results = current_app.config['MAX_CARPARKS_RETURN']
-    
+    search_type = 'text'
+    search_centre = None  # (lat, lng) — set when radius search runs
+
     # 1. Fetch from BOTH sources
     log_info("🔍 Fetching carparks from LTA and HDB APIs...")
-    
+
     lta_carparks = []
     hdb_carparks = []
-    
+
     try:
         lta_carparks = fetch_all_carparks()
         log_info(f"✅ LTA: {len(lta_carparks)} carparks")
     except Exception as e:
         current_app.logger.error(f"❌ LTA fetch failed: {e}")
-    
+
     try:
         hdb_carparks = fetch_all_hdb_carparks()
         log_info(f"✅ HDB: {len(hdb_carparks)} carparks")
     except Exception as e:
         current_app.logger.error(f"❌ HDB fetch failed: {e}")
-    
+
     # 2. Merge both lists
-    # For empty/near me searches, interleave LTA and HDB to ensure both appear in top results
-    # For specific searches, keep natural order (search ranking matters)
     if not search_term or not search_term.strip() or search_term.lower().strip() == 'near me':
-        # Interleave: alternate between LTA and HDB carparks
         all_carparks = []
         lta_idx, hdb_idx = 0, 0
         while lta_idx < len(lta_carparks) or hdb_idx < len(hdb_carparks):
-            # Add 1 LTA
             if lta_idx < len(lta_carparks):
                 all_carparks.append(lta_carparks[lta_idx])
                 lta_idx += 1
-            # Add 2 HDB (since there are many more HDB carparks)
             for _ in range(2):
                 if hdb_idx < len(hdb_carparks):
                     all_carparks.append(hdb_carparks[hdb_idx])
                     hdb_idx += 1
         log_info(f"📊 Interleaved {len(all_carparks)} carparks (LTA+HDB mixed)")
     else:
-        # Keep natural order for specific searches (relevance matters)
         all_carparks = lta_carparks + hdb_carparks
         log_info(f"📊 Total: {len(all_carparks)} carparks combined (natural order)")
-    
+
     # 3. Smart filter with aliases and ranking
     filtered = smart_filter_carparks(all_carparks, search_term or "")
-    
-    # Log top 3 before consolidation
+
     if search_term and filtered:
-        log_info(
-            f"🔝 Top 3 before consolidation: {[cp['Development'] for cp in filtered[:3]]}"
-        )
-    
+        log_info(f"🔝 Top 3 before consolidation: {[cp['Development'] for cp in filtered[:3]]}")
+
     # 4. Consolidate (sum up lots by carpark ID)
     consolidated_carparks = consolidate_carparks(filtered)
-    
-    # Log top 3 after consolidation
+
     if search_term and consolidated_carparks:
-        log_info(
-            f"🔝 Top 3 after consolidation: {[cp['Development'] for cp in consolidated_carparks[:3]]}"
-        )
-    
+        log_info(f"🔝 Top 3 after consolidation: {[cp['Development'] for cp in consolidated_carparks[:3]]}")
+
     # 5. Transform carparks
     transformed = [transform_carpark(cp) for cp in consolidated_carparks]
     transformed = [cp for cp in transformed if cp is not None]
-    
-    # 6. If user location provided, add distance (and optionally sort)
+
+    # 6. Radius search for place name queries
+    term = (search_term or '').strip()
+    is_near_me = term.lower() == 'near me'
+    if term and not is_near_me and detect_search_intent(term) == 'place':
+        geocoded = geocode_place(term)
+        if geocoded:
+            centre_lat, centre_lng = geocoded
+            centre_n, centre_e = wgs84_to_svy21(centre_lat, centre_lng)
+            # Add distances relative to geocoded centre
+            for cp in transformed:
+                cp['distance'] = calculate_distance(centre_n, centre_e, cp['northing'], cp['easting'])
+            # Filter to radius
+            in_radius = filter_by_radius(transformed, centre_n, centre_e, radius_m)
+            if in_radius:
+                # Sort by distance within radius
+                in_radius.sort(key=lambda x: x.get('distance', float('inf')))
+                transformed = in_radius
+                search_type = 'radius'
+                search_centre = {'lat': centre_lat, 'lng': centre_lng}
+                log_info(f"📍 Radius search: {len(transformed)} carparks within {radius_m}m of '{term}'")
+
+    # 7. If user location provided (and not already set by radius search), add distance
     if user_lat is not None and user_lng is not None:
-        # Add distance to all carparks
+        user_n, user_e = wgs84_to_svy21(user_lat, user_lng)
         for cp in transformed:
-            cp['distance'] = calculate_distance(
-                user_lat, user_lng,
-                cp['latitude'], cp['longitude']
-            )
-        
+            if 'distance' not in cp:
+                cp['distance'] = calculate_distance(user_n, user_e, cp['northing'], cp['easting'])
+
         if sort_by_distance:
-            # Sort by distance (closest first)
             transformed.sort(key=lambda x: x.get('distance', float('inf')))
             log_info(f"📍 Distance-sorted {len(transformed)} carparks from user location")
-            
-            # Log closest carpark
             if transformed:
                 closest = transformed[0]
-                log_info(
-                    f"📍 Closest: {closest['development']} ({closest['distance']:.2f}km)"
-                )
-    
-    # 7. Limit results
+                log_info(f"📍 Closest: {closest['development']} ({closest['distance']:.2f}km)")
+
+    # 8. Limit results
     result = transformed[:max_results]
-    log_info(f"📦 Returning {len(result)} carparks")
-    
-    return result
+    log_info(f"📦 Returning {len(result)} carparks (search_type={search_type})")
+
+    return result, search_type, search_centre

@@ -4,9 +4,40 @@ Smart Search Service - Handles mall aliases, fuzzy matching, and intelligent ran
 
 import json
 import os
+import re
 from typing import List, Dict, Tuple
 from flask import current_app
 from app.logging_utils import log_info
+
+# Carpark ID pattern: 1-3 uppercase letters + digits + optional letter (e.g. BTP0012, HE22, ACB)
+_CARPARK_ID_RE = re.compile(r'^[A-Z]{1,3}\d+[A-Z]?$')
+
+
+def detect_search_intent(search_term: str) -> str:
+    """
+    Classify a search term as 'place' or 'id'.
+
+    Returns 'id' if the term looks like a carpark identifier (e.g. BTP0012, HE22).
+    Returns 'place' for everything else (area names, aliases, addresses).
+    """
+    term = search_term.strip()
+    if not term:
+        return 'place'
+
+    # Multi-word → always a place (addresses, area names)
+    if ' ' in term:
+        return 'place'
+
+    # Check alias file — known shorthand like "ion", "vivo"
+    aliases, _ = load_search_config()
+    if term.lower() in aliases:
+        return 'place'
+
+    # Matches carpark ID pattern
+    if _CARPARK_ID_RE.match(term.upper()):
+        return 'id'
+
+    return 'place'
 
 # Cache for search aliases
 _search_aliases = None

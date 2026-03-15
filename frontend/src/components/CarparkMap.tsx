@@ -1,5 +1,7 @@
 import { availableCarparkResponse } from "@/types/types";
 import { APIProvider, Map, AdvancedMarker, useMap, Pin } from "@vis.gl/react-google-maps";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
+import type { Cluster } from "@googlemaps/markerclusterer";
 import { forwardRef, useImperativeHandle, useState, useRef, useEffect } from "react";
 import { CarparkPanel } from "./CarparkPanel";
 import { logger } from "@/utils/logger";
@@ -22,6 +24,8 @@ interface CarparkMapProps {
 interface MapControllerHandle {
   panToLocation: (lat: number, lng: number) => void;
 }
+
+const CAR_SVG_PATH = "M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z";
 
 function markerColor(lots: number): string {
   if (lots > 10) return '#22c55e';
@@ -47,11 +51,42 @@ function CarparkMarker({ lots, selected }: { lots: number; selected: boolean }) 
       cursor: 'pointer',
     }}>
       <svg width={selected ? 20 : 16} height={selected ? 20 : 16} viewBox="0 0 24 24" fill="white">
-        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+        <path d={CAR_SVG_PATH} />
       </svg>
     </div>
   );
 }
+
+/** Build a native DOM element for use with AdvancedMarkerElement (imperative clustering) */
+function buildMarkerElement(lots: number): HTMLDivElement {
+  const bg = markerColor(lots);
+  const el = document.createElement('div');
+  el.style.cssText = `background:${bg};border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.35);cursor:pointer;`;
+  el.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="${CAR_SVG_PATH}"/></svg>`;
+  el.dataset.lots = String(lots);
+  return el;
+}
+
+// Custom cluster renderer — badge colour reflects best availability in cluster
+const clusterRenderer = {
+  render(cluster: Cluster): google.maps.marker.AdvancedMarkerElement {
+    const markers = cluster.markers as google.maps.marker.AdvancedMarkerElement[];
+    const lots = markers.map(m => parseInt((m.content as HTMLElement)?.dataset?.lots ?? '0'));
+    const bestLots = Math.max(...lots);
+    const bg = markerColor(bestLots);
+    const count = cluster.count;
+
+    const el = document.createElement('div');
+    el.style.cssText = `background:${bg};border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,0.4);cursor:pointer;border:2px solid white;`;
+    el.textContent = String(count);
+
+    return new google.maps.marker.AdvancedMarkerElement({
+      position: cluster.position,
+      content: el,
+      zIndex: 50,
+    });
+  },
+};
 
 // Inner component — must be inside <Map> to use useMap()
 const MapController = forwardRef<MapControllerHandle, {
@@ -61,6 +96,8 @@ const MapController = forwardRef<MapControllerHandle, {
   userLocation?: { lat: number; lng: number } | null;
 }>(({ carparks, selectedCarpark, onSelect, userLocation }, ref) => {
   const map = useMap();
+  const clustererRef = useRef<MarkerClusterer | null>(null);
+  const nativeMarkersRef = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
 
   useImperativeHandle(ref, () => ({
     panToLocation: (lat: number, lng: number) => {
@@ -71,6 +108,43 @@ const MapController = forwardRef<MapControllerHandle, {
       }
     }
   }));
+
+  // Manage clustered markers imperatively
+  useEffect(() => {
+    if (!map) return;
+
+    // Remove old native markers
+    nativeMarkersRef.current.forEach(m => { m.map = null; });
+    nativeMarkersRef.current.clear();
+    clustererRef.current?.clearMarkers();
+
+    // Build markers for all carparks except selected (selected rendered via React AdvancedMarker)
+    const toCluster = carparks.filter(cp => cp.carpark_num !== selectedCarpark?.carpark_num);
+    const newMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
+
+    for (const carpark of toCluster) {
+      const content = buildMarkerElement(carpark.car_lots);
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        position: { lat: carpark.latitude, lng: carpark.longitude },
+        content,
+      });
+      marker.addListener('click', () => onSelect(carpark));
+      nativeMarkersRef.current.set(carpark.carpark_num, marker);
+      newMarkers.push(marker);
+    }
+
+    if (!clustererRef.current) {
+      clustererRef.current = new MarkerClusterer({ map, markers: newMarkers, renderer: clusterRenderer });
+    } else {
+      clustererRef.current.addMarkers(newMarkers);
+    }
+
+    return () => {
+      nativeMarkersRef.current.forEach(m => { m.map = null; });
+      nativeMarkersRef.current.clear();
+      clustererRef.current?.clearMarkers();
+    };
+  }, [map, carparks, selectedCarpark]);
 
   return (
     <>
@@ -85,23 +159,8 @@ const MapController = forwardRef<MapControllerHandle, {
         </AdvancedMarker>
       )}
 
-      {/* Carpark markers */}
-      {carparks.map(carpark => {
-        const isSelected = selectedCarpark?.carpark_num === carpark.carpark_num;
-        return (
-          <AdvancedMarker
-            key={carpark.carpark_num}
-            position={{ lat: carpark.latitude, lng: carpark.longitude }}
-            onClick={() => onSelect(carpark)}
-            zIndex={isSelected ? 100 : 1}
-          >
-            <CarparkMarker lots={carpark.car_lots} selected={isSelected} />
-          </AdvancedMarker>
-        );
-      })}
-
-      {/* Keep selected marker visible even if not in current search results */}
-      {selectedCarpark && !carparks.some(cp => cp.carpark_num === selectedCarpark.carpark_num) && (
+      {/* Selected carpark — rendered standalone outside clusterer, always visible */}
+      {selectedCarpark && (
         <AdvancedMarker
           key={`selected-${selectedCarpark.carpark_num}`}
           position={{ lat: selectedCarpark.latitude, lng: selectedCarpark.longitude }}
