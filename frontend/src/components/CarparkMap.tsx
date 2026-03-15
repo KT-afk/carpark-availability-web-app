@@ -1,5 +1,5 @@
 import { availableCarparkResponse } from "@/types/types";
-import { APIProvider, Map, Marker, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker, useMap, Pin } from "@vis.gl/react-google-maps";
 import { forwardRef, useImperativeHandle, useState, useRef, useEffect } from "react";
 import { CarparkPanel } from "./CarparkPanel";
 import { logger } from "@/utils/logger";
@@ -76,19 +76,13 @@ const MapController = forwardRef<MapControllerHandle, {
     <>
       {/* User location marker */}
       {userLocation && (
-        <Marker
+        <AdvancedMarker
           position={{ lat: userLocation.lat, lng: userLocation.lng }}
-          icon={{
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: '#4285F4',
-            fillOpacity: 1,
-            strokeColor: '#FFFFFF',
-            strokeWeight: 3,
-            scale: 10,
-          }}
           title="Your Location"
           zIndex={1000}
-        />
+        >
+          <Pin background="#4285F4" borderColor="#FFFFFF" glyphColor="#FFFFFF" scale={1.2} />
+        </AdvancedMarker>
       )}
 
       {/* Carpark markers */}
@@ -165,6 +159,7 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
           style={{ width: "100%", height: "100%" }}
           defaultCenter={{ lat: 1.3521, lng: 103.8198 }}
           defaultZoom={13}
+          mapId={import.meta.env.VITE_GOOGLE_MAPS_MAP_ID}
           onClick={handleMapClick}
         >
           <MapController
