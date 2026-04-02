@@ -12,6 +12,12 @@ const RADIUS_OPTIONS = [
   { value: 1000, label: '1km' },
   { value: 1500, label: '1.5km' },
   { value: 2000, label: '2km' },
+  { value: 2500, label: '2.5km' },
+  { value: 3000, label: '3km' },
+  { value: 3500, label: '3.5km' },
+  { value: 4000, label: '4km' },
+  { value: 4500, label: '4.5km' },
+  { value: 5000, label: '5km' },
 ];
 
 export const RadiusSelector: React.FC<RadiusSelectorProps> = ({

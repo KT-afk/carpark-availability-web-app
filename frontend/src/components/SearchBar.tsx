@@ -1,17 +1,23 @@
+import { addFavorite, addRecentSearch, isFavorite, removeFavorite } from "@/services/localStorage";
 import { availableCarparkResponse } from "@/types/types";
-import { Loader2, Search, X, MapPin, Star } from "lucide-react";
+import { logger } from "@/utils/logger";
+import { Loader2, MapPin, Search, Star, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { FavoritesAndRecent } from "./FavoritesAndRecent";
+import { RadiusSelector } from "./RadiusSelector";
 import { SmartRecommendations } from "./SmartRecommendations";
 import { TimeBasedAlert } from "./TimeBasedAlert";
-import { FavoritesAndRecent } from "./FavoritesAndRecent";
-import { isFavorite, addFavorite, removeFavorite, addRecentSearch } from "@/services/localStorage";
-import { useState, useEffect, useRef } from "react";
-import { logger } from "@/utils/logger";
 
 interface SearchBarProps {
   value: string;
   searchResults: availableCarparkResponse[];
   isLoading: boolean;
+  searchCentre: { lat: number, lng: number} | null;
+  searchTerm: string;
+  radius: number;
+  setRadius: (value: number) => void;
   onChange: (value: string) => void;
+  onFocus: () => void;
   onCarparkSelect: (carpark: availableCarparkResponse) => void;
   isDropdownVisible: boolean;
   onDismissDropdown: () => void;
@@ -26,7 +32,12 @@ const SearchBar = ({
   value,
   searchResults,
   isLoading,
+  searchCentre,
+  radius,
+  searchTerm,
+  setRadius,
   onChange,
+  onFocus,
   onCarparkSelect,
   isDropdownVisible,
   onDismissDropdown,
@@ -52,7 +63,6 @@ const SearchBar = ({
     onCarparkSelect(carpark);
     onDismissDropdown(); // Hide dropdown when result clicked
   };
-
   const handleFavoriteToggle = (e: React.MouseEvent, carpark: availableCarparkResponse) => {
     e.stopPropagation();
     if (isFavorite(carpark.carpark_num)) {
@@ -89,6 +99,7 @@ const SearchBar = ({
               type="text"
               value={value}
               onChange={(e) => onChange(e.target.value)}
+              onFocus={onFocus}
               className="w-full rounded-full border border-gray-200 bg-white px-5 py-3 pr-32 text-base shadow-md transition-shadow duration-200 hover:shadow-lg focus:border-gray-300 focus:outline-none"
               placeholder="Search for carpark by name, area, or number"
             />
@@ -127,7 +138,16 @@ const SearchBar = ({
               />
             </div>
           )}
-
+          {searchCentre && (
+                    <div className="fixed top-16 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4 z-20 mt-2">
+                      <RadiusSelector
+                        radius={radius}
+                        onChange={setRadius}
+                        resultCount={searchResults.length}
+                        placeName={searchTerm}
+                      />
+                    </div>
+                  )}
           {showDropdown && (
             <div className="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200 max-h-96 overflow-y-auto">
               {/* Header with dismiss button */}
