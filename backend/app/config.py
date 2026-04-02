@@ -17,6 +17,9 @@ class Config:
     
     # AI settings
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
+
+    # Google Maps (server-side geocoding)
+    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
     
     # CORS settings
     CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*')
