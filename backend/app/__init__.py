@@ -45,11 +45,6 @@ def create_app():
         load_hdb_carpark_info()
         # HDB info loaded
         
-        # Pre-load search aliases
-        from app.services.search_service import load_search_config
-        load_search_config()
-        # Search aliases loaded
-        
         # Warm up cache by fetching initial data
         try:
             from app.services.carpark_service import fetch_all_carparks

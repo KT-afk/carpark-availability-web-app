@@ -1,10 +1,10 @@
 import { availableCarparkResponse } from "@/types/types";
-import { APIProvider, Map, AdvancedMarker, useMap, Pin } from "@vis.gl/react-google-maps";
-import { MarkerClusterer } from "@googlemaps/markerclusterer";
-import type { Cluster } from "@googlemaps/markerclusterer";
-import { forwardRef, useImperativeHandle, useState, useRef, useEffect } from "react";
-import { CarparkPanel } from "./CarparkPanel";
 import { logger } from "@/utils/logger";
+import type { Cluster } from "@googlemaps/markerclusterer";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
+import { AdvancedMarker, APIProvider, Map as GoogleMap, Pin, useMap } from "@vis.gl/react-google-maps";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { CarparkPanel } from "./CarparkPanel";
 
 export interface CarparkMapRef {
   panToCarpark: (lat: number, lng: number) => void;
@@ -214,7 +214,7 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
 
     return (
       <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
-        <Map
+        <GoogleMap
           style={{ width: "100%", height: "100%" }}
           defaultCenter={{ lat: 1.3521, lng: 103.8198 }}
           defaultZoom={13}
@@ -231,7 +231,7 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
             }}
             userLocation={userLocation}
           />
-        </Map>
+        </GoogleMap>
         <CarparkPanel
           carpark={selectedCarpark}
           show={showPanel}

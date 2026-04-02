@@ -25,13 +25,8 @@ def search():
     radius_m = request.args.get('radius', default=1000, type=int)
 
     # Special handling for "near me" — treat as empty search with distance sort
-    is_near_me = search_term.lower().strip() == 'near me'
-    if is_near_me:
-        search_term = ''
-
-    carparks, search_type, search_centre = get_carparks(
+    carparks, search_centre = get_carparks(
         search_term, user_lat, user_lng,
-        sort_by_distance=is_near_me,
         radius_m=radius_m
     )
 
@@ -55,7 +50,6 @@ def search():
 
     response = {
         'carparks': carparks,
-        'search_type': search_type,
         'search_centre': search_centre,
     }
 
