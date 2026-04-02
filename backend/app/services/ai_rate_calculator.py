@@ -219,7 +219,7 @@ class AIRateCalculator:
     ) -> str:
         """Build prompt for Claude to calculate parking cost."""
         
-        return f"""You are a parking cost calculator. Calculate the EXACT cost to park at this carpark.
+        return f"""You are a parking cost calculator. Calculate the EXACT cost to park at this carpark.You are calculating for EXACTLY {duration_hours} hours. Your breakdown MUST use {duration_hours} hours, not any other number.
 
 CARPARK: {carpark_name}
 RATE STRUCTURE: {rate_string}
