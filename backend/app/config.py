@@ -14,7 +14,7 @@ class Config:
     PORT = os.getenv('PORT', '5001')
     GOV_API_KEY = os.getenv('GOV_API_KEY')
     DATA_GOV_API_KEY = os.getenv('DATA_GOV_API_KEY')
-    
+    REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
     # AI settings
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 

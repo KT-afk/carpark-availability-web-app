@@ -18,6 +18,7 @@ def fetch_all_carparks():
     """Fetch carparks from LTA API"""
     api_url = current_app.config['GOV_API_URL']
     timeout = current_app.config.get('REQUEST_TIMEOUT', 10)
+    print("DEBUG: hitting LTA API")
     try:
         headers = {"AccountKey": current_app.config['GOV_API_KEY']}
         response = requests.get(api_url, timeout=timeout, headers=headers)

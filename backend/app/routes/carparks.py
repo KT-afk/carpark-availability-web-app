@@ -33,9 +33,8 @@ def search():
     # If duration provided, calculate costs using AI (top 10 only)
     if duration and duration > 0:
         try:
-            from app.services.ai_rate_calculator import get_ai_rate_calculator
-            calculator = get_ai_rate_calculator()
-            carparks = calculator.calculate_costs(
+            from app.services.ai_rate_calculator import calculate_costs
+            carparks = calculate_costs(
                 carparks,
                 duration_hours=duration,
                 day_type=day_type,
