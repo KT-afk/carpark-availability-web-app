@@ -18,6 +18,7 @@ def load_hdb_carpark_info() -> Dict[str, Dict]:
     global _hdb_info_cache
     
     if _hdb_info_cache is not None:
+        log_info(f"✅ Loaded {len(_hdb_info_cache)} HDB carpark info records from cache")
         return _hdb_info_cache
     
     try:
