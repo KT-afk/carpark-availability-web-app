@@ -68,11 +68,7 @@ const SearchBar = ({
     if (isFavorite(carpark.carpark_num)) {
       removeFavorite(carpark.carpark_num);
     } else {
-      addFavorite({
-        carpark_num: carpark.carpark_num,
-        development: carpark.development,
-        area: carpark.area,
-      });
+      addFavorite(carpark);
     }
     setForceUpdate(prev => prev + 1); // Force re-render to update star icons
   };
@@ -100,6 +96,7 @@ const SearchBar = ({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               onFocus={onFocus}
+              onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
               className="w-full rounded-full border border-gray-200 bg-white px-5 py-3 pr-32 text-base shadow-md transition-shadow duration-200 hover:shadow-lg focus:border-gray-300 focus:outline-none"
               placeholder="Search for carpark by name, area, or number"
             />
@@ -138,16 +135,7 @@ const SearchBar = ({
               />
             </div>
           )}
-          {searchCentre && (
-                    <div className="fixed top-16 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4 z-20 mt-2">
-                      <RadiusSelector
-                        radius={radius}
-                        onChange={setRadius}
-                        resultCount={searchResults.length}
-                        placeName={searchTerm}
-                      />
-                    </div>
-                  )}
+          
           {showDropdown && (
             <div className="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200 max-h-96 overflow-y-auto">
               {/* Header with dismiss button */}
@@ -165,7 +153,16 @@ const SearchBar = ({
                   </button>
                 </div>
               </div>
-
+              {searchCentre && (
+                    <div className="px-4 pt-4">
+                      <RadiusSelector
+                        radius={radius}
+                        onChange={setRadius}
+                        resultCount={searchResults.length}
+                        placeName={searchTerm}
+                      />
+                    </div>
+                  )}
               {isLoading ? (
                 <div className="flex items-center justify-center p-8">
                   <Loader2

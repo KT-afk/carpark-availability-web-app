@@ -39,37 +39,30 @@ export const SmartRecommendations = ({ carparks, userLocation, duration, onCarpa
   }));
 
   if (validCarparks.length === 0) return null;
-
+  const findBest = (carparks: typeof validCarparks, scoreFn: (cp: typeof validCarparks[0]) => number) => {
+    return carparks.reduce((prev, curr) => 
+      scoreFn(curr) < scoreFn(prev) ? curr : prev
+  )} 
   // Find cheapest
-  const cheapest = validCarparks.reduce((prev, curr) =>
-    curr.estimatedCost < prev.estimatedCost ? curr : prev
-  );
+  const cheapest = findBest(validCarparks, cp=> cp.estimatedCost + (cp.distance as number || 0)*0.0001);
+  
 
   // Find closest (if user location available)
   let closest: typeof validCarparks[0] | null = null;
+  let carparksWithDistance: typeof validCarparks = [];
+  let bestValue: typeof validCarparks[0] | null = null;
+
   if (userLocation) {
-    const carparksWithDistance = validCarparks.filter((cp) => (cp as any).distance !== undefined);
+    carparksWithDistance = validCarparks.filter((cp) => (cp as any).distance !== undefined);
     if (carparksWithDistance.length > 0) {
-      closest = carparksWithDistance.reduce((prev, curr) =>
-        ((curr as any).distance || Infinity) < ((prev as any).distance || Infinity) ? curr : prev
-      );
+      closest = findBest(carparksWithDistance, cp => cp.distance as number);
     }
   }
-
-  // Find best value (balance of price and distance)
-  // Formula: Score = Cost + (Distance × $0.50/km × Duration)
-  // Rationale: Each km adds ~$0.50 in travel cost (time/fuel), scaled by parking duration
-  let bestValue: typeof validCarparks[0] | null = null;
-  if (userLocation && closest) {
-    const distancePenalty = 0.5 * duration; // $0.50/km × duration hours
-    
-    bestValue = validCarparks
-      .filter((cp) => (cp as any).distance !== undefined)
-      .reduce((prev, curr) => {
-        const prevScore = prev.estimatedCost + ((prev as any).distance || 0) * distancePenalty;
-        const currScore = curr.estimatedCost + ((curr as any).distance || 0) * distancePenalty;
-        return currScore < prevScore ? curr : prev;
-      });
+  if (userLocation && carparksWithDistance.length > 0) {
+    const distancePenalty = 0.5 * duration;
+    bestValue = findBest(carparksWithDistance, cp =>
+      cp.estimatedCost + (cp.distance as number) * distancePenalty
+    );
   }
 
   return (
@@ -107,7 +100,7 @@ export const SmartRecommendations = ({ carparks, userLocation, duration, onCarpa
         )}
 
         {/* Cheapest */}
-        {cheapest && (!bestValue || cheapest.carpark_num !== bestValue.carpark_num) && (
+        {cheapest && (
           <div 
             className="flex items-start justify-between bg-white rounded-md p-3 border border-green-100 cursor-pointer hover:bg-green-50 transition-colors"
             onClick={() => onCarparkClick?.(cheapest)}
@@ -135,7 +128,7 @@ export const SmartRecommendations = ({ carparks, userLocation, duration, onCarpa
         )}
 
         {/* Closest */}
-        {closest && (!bestValue || closest.carpark_num !== bestValue.carpark_num) && (!cheapest || closest.carpark_num !== cheapest.carpark_num) && (
+        {closest && (
           <div 
             className="flex items-start justify-between bg-white rounded-md p-3 border border-purple-100 cursor-pointer hover:bg-purple-50 transition-colors"
             onClick={() => onCarparkClick?.(closest)}
