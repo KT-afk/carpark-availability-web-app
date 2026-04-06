@@ -51,7 +51,6 @@ generate_ogp_doc.py
 .vscode/
 
 # OpenSpec / GitHub
-openspec/
 .github/
 backend/.github/
 backend/openspec/
