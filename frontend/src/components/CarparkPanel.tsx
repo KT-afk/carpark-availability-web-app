@@ -182,7 +182,6 @@ export function CarparkPanel({ carpark, show, onClose, duration, dayType }: Carp
                 <RateRow label="Sun / PH" value={carpark.pricing.sunday_rate} active={dayType === 'sunday'} />
               </div>
 
-              {/* AI-calculated cost */}
               {carpark.calculated_cost != null && (
                 <div className="mt-3 rounded-2xl bg-cyan-50 border border-cyan-200 px-3 py-2.5">
                   <p className="text-xs text-cyan-700 font-medium mb-0.5">
