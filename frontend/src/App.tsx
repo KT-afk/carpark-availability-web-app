@@ -4,6 +4,8 @@ import { availableCarparkResponse } from "@/types/types";
 import { logger } from "@/utils/logger";
 import { useEffect, useRef, useState } from "react";
 import CarparkMap, { CarparkMapRef } from "./components/CarparkMap";
+import { FavoritesPanel } from "./components/FavoritesPanel";
+import { FavoriteCarpark } from "./services/localStorage";
 
 
 function App() {
@@ -38,7 +40,8 @@ function App() {
     useState(false);
   const [useGPSLocation, setUseGPSLocation] = useState(true); // Toggle to disable GPS
   const mapRef = useRef<CarparkMapRef>(null);
-
+  const [showFavoritesPanel, setShowFavoritesPanel] = useState(false);
+  const [selectedCarpark, setSelectedCarpark] = useState<availableCarparkResponse | null>(null);
   // Reusable function to request user location
   const requestUserLocation = (autoSearch = false) => {
     if (!navigator.geolocation) {
@@ -212,9 +215,13 @@ function App() {
 
   const handleCarparkSelect = (carpark: availableCarparkResponse) => {
     mapRef.current?.panToAndSelectCarpark(carpark);
-    // Dropdown will be hidden by SearchBar's handleResultClick
+    setShowFavoritesPanel(false);
   };
-
+  const toggleFavorites = () => {
+    const opening = !showFavoritesPanel;
+    setShowFavoritesPanel(opening);
+    if (opening && selectedCarpark) setSelectedCarpark(null);                                                                                           
+  };  
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     setIsDropdownVisible(true); // Show dropdown when typing
@@ -223,9 +230,14 @@ function App() {
     // This prevents focus issues where InfoWindow steals focus from input
     mapRef.current?.closeInfoWindow();
   };
+  const handleFavoriteClick = (fav: FavoriteCarpark) => {
+    setShowFavoritesPanel(false);
+    setSearchTerm(fav.development);
+  }
 
   const handleDismissDropdown = () => {
     setIsDropdownVisible(false);
+    setShowFavoritesPanel(false);
   };
 
   const handleNearMeClick = () => {
@@ -293,6 +305,8 @@ function App() {
         <CarparkMap
           ref={mapRef}
           carparks={searchResults || []}
+          selectedCarpark={selectedCarpark}
+          setSelectedCarpark={setSelectedCarpark}
           onMapClick={handleDismissDropdown}
           userLocation={userLocation}
           duration={duration}
@@ -309,6 +323,7 @@ function App() {
           onChange={handleSearchChange}
           onFocus={() => setIsDropdownVisible(true)}
           onCarparkSelect={handleCarparkSelect}
+          onFavoritesClick={toggleFavorites}
           isDropdownVisible={isDropdownVisible}
           onDismissDropdown={handleDismissDropdown}
           onNearMeClick={handleNearMeClick}
@@ -317,14 +332,26 @@ function App() {
           duration={duration}
           dayType={dayType}
         />
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4 z-20">
-          <DurationSelector
-            duration={duration}
-            onChange={setDuration}
-            dayType={dayType}
-            onDayTypeChange={setDayType}
+        { showFavoritesPanel && (
+          <FavoritesPanel
+            onFavoriteClick={handleFavoriteClick}
+            show={showFavoritesPanel}
+            onClose={handleDismissDropdown}
           />
-        </div>
+        )
+
+        }
+        { !showFavoritesPanel &&
+          (<div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4 z-20">
+            <DurationSelector
+              duration={duration}
+              onChange={setDuration}
+              dayType={dayType}
+              onDayTypeChange={setDayType}
+            />
+          </div>)
+        }
+        
       </div>
     </>
   );

@@ -1,9 +1,8 @@
-import { addFavorite, addRecentSearch, isFavorite, removeFavorite } from "@/services/localStorage";
+import { addFavorite, addRecentSearch, clearRecentSearches, getRecentSearches, isFavorite, removeFavorite, RecentSearch } from "@/services/localStorage";
 import { availableCarparkResponse } from "@/types/types";
 import { logger } from "@/utils/logger";
-import { Loader2, MapPin, Search, Star, X } from "lucide-react";
+import { Clock, Loader2, MapPin, Search, Star, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { FavoritesAndRecent } from "./FavoritesAndRecent";
 import { RadiusSelector } from "./RadiusSelector";
 import { SmartRecommendations } from "./SmartRecommendations";
 import { TimeBasedAlert } from "./TimeBasedAlert";
@@ -21,6 +20,7 @@ interface SearchBarProps {
   onCarparkSelect: (carpark: availableCarparkResponse) => void;
   isDropdownVisible: boolean;
   onDismissDropdown: () => void;
+  onFavoritesClick: () => void;
   onNearMeClick?: () => void;
   hasUserLocation?: boolean;
   userLocation: { lat: number; lng: number } | null;
@@ -41,6 +41,7 @@ const SearchBar = ({
   onCarparkSelect,
   isDropdownVisible,
   onDismissDropdown,
+  onFavoritesClick,
   onNearMeClick,
   hasUserLocation = false,
   userLocation,
@@ -48,12 +49,29 @@ const SearchBar = ({
   dayType,
 }: SearchBarProps) => {
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const pendingFavoriteSelect = useRef<string | null>(null);
 
   const showDropdown =
     value.trim() !== "" && isDropdownVisible && (isLoading || searchResults.length > 0);
-  
-  const showFavoritesPanel = value.trim() === "" && isDropdownVisible;
+  const showRecentSearches =
+    value.trim() === "" && isDropdownVisible && recentSearches.length > 0;
+
+  useEffect(() => {
+    if (isDropdownVisible && value.trim() === "") {
+      setRecentSearches(getRecentSearches());
+    }
+  }, [isDropdownVisible, value]);
+
+  const handleClearRecent = () => {
+    clearRecentSearches();
+    setRecentSearches([]);
+  };
+
+  const handleRecentClick = (term: string) => {
+    onChange(term);
+    onDismissDropdown();
+  };
 
   const handleResultClick = (carpark: availableCarparkResponse) => {
     // Save to recent searches if it's a manual search (not from favorites)
@@ -116,26 +134,16 @@ const SearchBar = ({
                 </button>
               )}
               <Search size={20} className="text-blue-500" />
+              <button
+                type="button"
+                onClick={onFavoritesClick}
+                title="My Favourites"
+                className="cursor-pointer"
+              >
+                <Star size={20} className="fill-yellow-400 text-yellow-400" />
+              </button>
             </div>
           </div>
-
-          {/* Favorites & Recent Searches Panel */}
-          {showFavoritesPanel && (
-            <div className="absolute z-10 mt-2 w-full">
-              <FavoritesAndRecent
-                isVisible={showFavoritesPanel}
-                onFavoriteClick={(fav) => {
-                  // Search by development name (more specific than carpark number)
-                  pendingFavoriteSelect.current = fav.carpark_num;
-                  onChange(fav.development);
-                }}
-                onRecentSearchClick={(term) => {
-                  onChange(term);
-                }}
-              />
-            </div>
-          )}
-          
           {showDropdown && (
             <div className="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200 max-h-96 overflow-y-auto">
               {/* Header with dismiss button */}
@@ -285,6 +293,31 @@ const SearchBar = ({
                   No carparks found
                 </div>
               )}
+            </div>
+          )}
+          {showRecentSearches && (
+            <div className="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Recent Searches
+                </span>
+                <button
+                  onClick={handleClearRecent}
+                  className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  Clear
+                </button>
+              </div>
+              {recentSearches.map((search) => (
+                <div
+                  key={search.timestamp}
+                  onClick={() => handleRecentClick(search.term)}
+                  className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                >
+                  <Clock size={14} className="text-gray-400 shrink-0" />
+                  <span className="text-sm text-gray-700 truncate">{search.term}</span>
+                </div>
+              ))}
             </div>
           )}
         </form>
