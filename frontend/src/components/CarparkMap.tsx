@@ -16,6 +16,8 @@ export interface CarparkMapRef {
 interface CarparkMapProps {
   carparks: availableCarparkResponse[];
   onMapClick?: () => void;
+  selectedCarpark: availableCarparkResponse | null;
+  setSelectedCarpark: (carpark: availableCarparkResponse | null) => void;
   userLocation?: { lat: number; lng: number } | null;
   duration: number;
   dayType: 'weekday' | 'saturday' | 'sunday';
@@ -176,16 +178,15 @@ const MapController = forwardRef<MapControllerHandle, {
 
 // Outer component — owns selection state, renders panel as sibling to Map
 const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
-  ({ carparks, onMapClick, userLocation, duration, dayType }, ref) => {
-    const [selectedCarpark, setSelectedCarpark] = useState<availableCarparkResponse | null>(null);
+  ({ carparks, onMapClick, selectedCarpark, setSelectedCarpark, userLocation, duration, dayType }, ref) => {
+    
     const [showPanel, setShowPanel] = useState(false);
     const mapControllerRef = useRef<MapControllerHandle>(null);
 
     // Sync selectedCarpark when carparks prop updates (e.g. duration/dayType change)
     useEffect(() => {
       if (selectedCarpark) {
-        const updated = carparks.find(cp => cp.carpark_num === selectedCarpark.carpark_num);
-        if (updated) setSelectedCarpark(updated);
+        setSelectedCarpark(selectedCarpark);
       }
     }, [carparks]);
 
