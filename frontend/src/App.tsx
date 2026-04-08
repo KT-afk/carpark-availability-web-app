@@ -233,9 +233,10 @@ function App() {
   };
   const handleFavoriteClick = (fav: FavoriteCarpark) => {
     setShowFavoritesPanel(false);
+    setSearchResults([]);
+    setIsDropdownVisible(false); // Don't show dropdown — go straight to carpark
     setPendingSelectCarpark(fav.carpark_num);
     setSearchTerm(fav.development);
-    setIsDropdownVisible(true);
   }
 
   const handleDismissDropdown = () => {
@@ -268,6 +269,13 @@ function App() {
   return (
     <>
       <div className="relative h-screen w-full">
+        {/* Favourite loading indicator */}
+        {pendingSelectCarpark && isLoading && (
+          <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg text-sm animate-pulse">
+            Loading carpark...
+          </div>
+        )}
+
         {/* Location loading indicator */}
         {isGettingLocation && (
           <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg text-sm animate-pulse">

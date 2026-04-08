@@ -186,7 +186,8 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
     // Sync selectedCarpark when carparks prop updates (e.g. duration/dayType change)
     useEffect(() => {
       if (selectedCarpark) {
-        setSelectedCarpark(selectedCarpark);
+        const updated = carparks.find(cp => cp.carpark_num === selectedCarpark.carpark_num);
+        if (updated) setSelectedCarpark(updated);
       }
     }, [carparks]);
 

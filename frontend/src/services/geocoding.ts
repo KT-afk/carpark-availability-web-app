@@ -1,4 +1,4 @@
-// Geocoding service to get address and postal code from coordinates
+// Geocoding service — calls backend reverse geocode endpoint
 const geocodeCache = new Map<string, { address: string; postalCode: string | null }>();
 
 export interface GeocodeResult {
@@ -6,58 +6,29 @@ export interface GeocodeResult {
   postalCode: string | null;
 }
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+
 export async function getAddressAndPostalCode(lat: number, lng: number): Promise<GeocodeResult> {
   const cacheKey = `${lat.toFixed(6)},${lng.toFixed(6)}`;
-  
-  // Check cache first
+
   if (geocodeCache.has(cacheKey)) {
     return geocodeCache.get(cacheKey)!;
   }
-  
+
   try {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      console.error('❌ Google Maps API key not found');
-      return { address: null, postalCode: null };
-    }
-    
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-    
+    const url = `${API_URL}/geocode/reverse?lat=${lat}&lng=${lng}`;
     const response = await fetch(url);
     const data = await response.json();
-    
-    
-    if (data.status === 'OK' && data.results.length > 0) {
-      let postalCode: string | null = null;
-      let address: string | null = null;
-      
-      // Get the first result's formatted address
-      const firstResult = data.results[0];
-      address = firstResult.formatted_address;
-      
-      // Find postal code in address components
-      for (const result of data.results) {
-        const postalComponent = result.address_components?.find(
-          (component: any) => component.types.includes('postal_code')
-        );
-        
-        if (postalComponent) {
-          postalCode = postalComponent.long_name;
-          break;
-        }
-      }
-      
-      
-      const result = { address, postalCode };
+
+    if (data.address) {
+      const result = { address: data.address, postalCode: data.postalCode };
       geocodeCache.set(cacheKey, result);
       return result;
-    } else {
-      console.warn('⚠️ Geocoding failed:', data.status, data.error_message);
     }
-    
+
     return { address: null, postalCode: null };
   } catch (error) {
-    console.error('❌ Geocoding error:', error);
+    console.error('Geocoding error:', error);
     return { address: null, postalCode: null };
   }
 }
