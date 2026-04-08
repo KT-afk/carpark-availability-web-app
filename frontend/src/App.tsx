@@ -42,6 +42,7 @@ function App() {
   const mapRef = useRef<CarparkMapRef>(null);
   const [showFavoritesPanel, setShowFavoritesPanel] = useState(false);
   const [selectedCarpark, setSelectedCarpark] = useState<availableCarparkResponse | null>(null);
+  const [pendingSelectCarpark, setPendingSelectCarpark] = useState<string | null>(null);
   // Reusable function to request user location
   const requestUserLocation = (autoSearch = false) => {
     if (!navigator.geolocation) {
@@ -232,7 +233,9 @@ function App() {
   };
   const handleFavoriteClick = (fav: FavoriteCarpark) => {
     setShowFavoritesPanel(false);
+    setPendingSelectCarpark(fav.carpark_num);
     setSearchTerm(fav.development);
+    setIsDropdownVisible(true);
   }
 
   const handleDismissDropdown = () => {
@@ -324,6 +327,8 @@ function App() {
           onFocus={() => setIsDropdownVisible(true)}
           onCarparkSelect={handleCarparkSelect}
           onFavoritesClick={toggleFavorites}
+          pendingSelectCarpark={pendingSelectCarpark}
+          onPendingSelectHandled={() => setPendingSelectCarpark(null)}
           isDropdownVisible={isDropdownVisible}
           onDismissDropdown={handleDismissDropdown}
           onNearMeClick={handleNearMeClick}

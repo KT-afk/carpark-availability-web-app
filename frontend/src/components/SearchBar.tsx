@@ -21,6 +21,8 @@ interface SearchBarProps {
   isDropdownVisible: boolean;
   onDismissDropdown: () => void;
   onFavoritesClick: () => void;
+  pendingSelectCarpark?: string | null;
+  onPendingSelectHandled?: () => void;
   onNearMeClick?: () => void;
   hasUserLocation?: boolean;
   userLocation: { lat: number; lng: number } | null;
@@ -42,6 +44,8 @@ const SearchBar = ({
   isDropdownVisible,
   onDismissDropdown,
   onFavoritesClick,
+  pendingSelectCarpark,
+  onPendingSelectHandled,
   onNearMeClick,
   hasUserLocation = false,
   userLocation,
@@ -91,6 +95,13 @@ const SearchBar = ({
     setForceUpdate(prev => prev + 1); // Force re-render to update star icons
   };
 
+  // Sync pending select from App (favourite click)
+  useEffect(() => {
+    if (pendingSelectCarpark) {
+      pendingFavoriteSelect.current = pendingSelectCarpark;
+    }
+  }, [pendingSelectCarpark]);
+
   // Auto-select carpark when favorite click triggers search results
   useEffect(() => {
     if (pendingFavoriteSelect.current && !isLoading && searchResults.length > 0) {
@@ -100,6 +111,7 @@ const SearchBar = ({
         logger.debug('✅ Auto-selecting favorite carpark:', carpark.development);
         handleResultClick(carpark);
         pendingFavoriteSelect.current = null;
+        onPendingSelectHandled?.();
       }
     }
   }, [searchResults, isLoading]);
