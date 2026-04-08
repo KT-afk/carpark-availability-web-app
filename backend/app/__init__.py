@@ -50,9 +50,11 @@ def create_app():
     # Register blueprints (we'll create these)
     from app.routes.health import health_bp
     from app.routes.carparks import carparks_bp
+    from app.routes.geocode import geocode_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(carparks_bp)
+    app.register_blueprint(geocode_bp)
 
     # Pre-load data on startup to avoid cold start delay
     with app.app_context():
