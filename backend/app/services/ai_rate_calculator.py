@@ -107,7 +107,6 @@ def calculate_costs(
     # Results are already in original order (no sorting needed)
     return results
 
-@cache.memoize(86400)
 def _calculate_single_carpark(
     carpark: Dict, 
     duration_hours: float,
@@ -127,9 +126,27 @@ def _calculate_single_carpark(
             'ai_explanation': None
         }
         
-    # Construct prompt for Claude
-    prompt = _build_calculation_prompt(
+    # Call the cached function with only hashable primitive args
+    return _calculate_with_claude(
+        carpark_num=carpark['carpark_num'],
         carpark_name=carpark['development'],
+        rate_string=rate_string,
+        duration_hours=duration_hours,
+        day_type=day_type
+    )
+
+@cache.memoize(timeout=86400)
+def _calculate_with_claude(
+    carpark_num: str,
+    carpark_name: str,
+    rate_string: str,
+    duration_hours: float,
+    day_type: str
+) -> Dict:
+    """Cached Claude API call — only takes hashable primitive args for reliable cache keys."""
+    
+    prompt = _build_calculation_prompt(
+        carpark_name=carpark_name,
         rate_string=rate_string,
         duration_hours=duration_hours,
         day_type=day_type
@@ -155,20 +172,18 @@ def _calculate_single_carpark(
         
         result = json.loads(result_text)
         
-        cost_result = {
+        return {
             'calculated_cost': float(result['total_cost']),
             'cost_breakdown': result['breakdown'],
             'ai_explanation': result.get('explanation'),
             'ai_confidence': result.get('confidence', 'high')
         }
-        
-        return cost_result
     
     except Exception as e:
-        current_app.logger.error(f"AI calculation failed for {carpark['carpark_num']}: {str(e)}")
+        current_app.logger.error(f"AI calculation failed for {carpark_num}: {str(e)}")
         return {
             'calculated_cost': None,
-            'cost_breakdown': f'Calculation error',
+            'cost_breakdown': 'Calculation error',
             'ai_explanation': str(e)
         }
         
