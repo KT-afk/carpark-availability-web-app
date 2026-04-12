@@ -108,9 +108,9 @@ function App() {
     );
   };
 
-  // Get user's location on mount
+  // Get user's location on mount and auto-search nearby carparks
   useEffect(() => {
-    requestUserLocation();
+    requestUserLocation(true);
   }, []);
 
   // Auto-trigger "near me" search after location is obtained (if requested)
