@@ -349,7 +349,7 @@ function App() {
           <FavoritesPanel
             onFavoriteClick={handleFavoriteClick}
             show={showFavoritesPanel}
-            onClose={handleDismissDropdown}
+            onClose={() => setShowFavoritesPanel(false)}
           />
         )
 
