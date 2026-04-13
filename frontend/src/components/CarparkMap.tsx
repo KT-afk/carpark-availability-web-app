@@ -47,7 +47,7 @@ function CarparkMarker({ lots, selected }: { lots: number; selected: boolean }) 
       alignItems: 'center',
       justifyContent: 'center',
       boxShadow: selected
-        ? `0 0 0 3px #fff, 0 0 0 5px ${bg}`
+        ? `0 0 0 3px #fff, 0 0 0 6px #1d4ed8`
         : '0 2px 4px rgba(0,0,0,0.35)',
       transition: 'all 0.15s ease',
       cursor: 'pointer',
