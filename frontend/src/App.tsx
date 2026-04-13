@@ -3,6 +3,7 @@ import SearchBar from "@/components/SearchBar";
 import { availableCarparkResponse } from "@/types/types";
 import { logger } from "@/utils/logger";
 import { useEffect, useRef, useState } from "react";
+import { useRegisterSW } from 'virtual:pwa-register/react';
 import CarparkMap, { CarparkMapRef } from "./components/CarparkMap";
 import { FavoritesPanel } from "./components/FavoritesPanel";
 import { FavoriteCarpark } from "./services/localStorage";
@@ -10,6 +11,12 @@ import { FavoriteCarpark } from "./services/localStorage";
 
 function App() {
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+
+  // PWA update prompt
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<
@@ -364,6 +371,19 @@ function App() {
             />
           </div>)
         }
+
+        {/* PWA update toast */}
+        {needRefresh && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-full shadow-xl text-sm">
+            <span>New version available</span>
+            <button
+              onClick={() => updateServiceWorker(true)}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold transition-colors"
+            >
+              Update
+            </button>
+          </div>
+        )}
         
       </div>
     </>
