@@ -150,8 +150,16 @@ const MapController = forwardRef<MapControllerHandle, {
 
   return (
     <>
-      {/* User location marker — pulsing blue dot */}
-      {userLocation && (
+      {/* User location marker — pulsing blue dot; hidden when selected carpark is on top */}
+      {userLocation && (() => {
+        if (selectedCarpark) {
+          const dLat = (userLocation.lat - selectedCarpark.latitude) * (Math.PI / 180);
+          const dLng = (userLocation.lng - selectedCarpark.longitude) * (Math.PI / 180);
+          const a = Math.sin(dLat / 2) ** 2 + Math.cos(userLocation.lat * Math.PI / 180) * Math.cos(selectedCarpark.latitude * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+          const distanceMetres = 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          if (distanceMetres < 50) return null;
+        }
+        return (
         <AdvancedMarker
           position={{ lat: userLocation.lat, lng: userLocation.lng }}
           title="Your Location"
@@ -182,7 +190,8 @@ const MapController = forwardRef<MapControllerHandle, {
             }} />
           </div>
         </AdvancedMarker>
-      )}
+        );
+      })()}
 
       {/* Selected carpark — rendered standalone outside clusterer, always visible */}
       {selectedCarpark && (
