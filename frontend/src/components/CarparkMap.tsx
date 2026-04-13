@@ -2,7 +2,7 @@ import { availableCarparkResponse } from "@/types/types";
 import { logger } from "@/utils/logger";
 import type { Cluster } from "@googlemaps/markerclusterer";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
-import { AdvancedMarker, APIProvider, Map as GoogleMap, Pin, useMap } from "@vis.gl/react-google-maps";
+import { AdvancedMarker, APIProvider, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { CarparkPanel } from "./CarparkPanel";
 
@@ -150,14 +150,37 @@ const MapController = forwardRef<MapControllerHandle, {
 
   return (
     <>
-      {/* User location marker */}
+      {/* User location marker — pulsing blue dot */}
       {userLocation && (
         <AdvancedMarker
           position={{ lat: userLocation.lat, lng: userLocation.lng }}
           title="Your Location"
-          zIndex={1000}
+          zIndex={50}
         >
-          <Pin background="#4285F4" borderColor="#FFFFFF" glyphColor="#FFFFFF" scale={1.2} />
+          <div style={{ position: 'relative', width: 20, height: 20 }}>
+            {/* Pulse ring */}
+            <div style={{
+              position: 'absolute',
+              inset: -6,
+              borderRadius: '50%',
+              background: 'rgba(66, 133, 244, 0.2)',
+              animation: 'userLocationPulse 2s ease-out infinite',
+            }} />
+            {/* White border */}
+            <div style={{
+              position: 'absolute',
+              inset: -3,
+              borderRadius: '50%',
+              background: '#fff',
+            }} />
+            {/* Blue dot */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              background: '#4285F4',
+            }} />
+          </div>
         </AdvancedMarker>
       )}
 
