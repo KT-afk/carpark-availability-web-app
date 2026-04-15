@@ -76,11 +76,17 @@ def calculate_costs(
 
     # Calculate costs in parallel using ThreadPoolExecutor
     if carparks_to_calculate:
+        app = current_app._get_current_object()
         with ThreadPoolExecutor(max_workers=5) as executor:
+            # Wrap with app context so threads can access Flask/cache
+            def _calc_with_context(cp, dur, day):
+                with app.app_context():
+                    return _calculate_single_carpark(cp, dur, day)
+
             # Submit all calculation tasks
             future_to_carpark = {
                 executor.submit(
-                    _calculate_single_carpark, carpark, duration_hours, day_type
+                    _calc_with_context, carpark, duration_hours, day_type
                 ): carpark
                 for carpark in carparks_to_calculate
             }

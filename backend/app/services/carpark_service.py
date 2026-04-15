@@ -35,6 +35,29 @@ def fetch_all_hdb_carparks():
         current_app.logger.error(f"Failed to fetch HDB carpark data: {str(e)}")
         return []
     
+def fetch_carpark_by_id(carpark_num):
+    """Fetch a single carpark by ID with live availability and pricing."""
+    lta_carparks = []
+    hdb_carparks = []
+
+    try:
+        lta_carparks = fetch_all_carparks()
+    except Exception as e:
+        current_app.logger.error(f"LTA fetch failed: {e}")
+
+    try:
+        hdb_carparks = fetch_all_hdb_carparks()
+    except Exception as e:
+        current_app.logger.error(f"HDB fetch failed: {e}")
+
+    consolidated = consolidate_carparks(lta_carparks + hdb_carparks)
+
+    for cp in consolidated:
+        if cp['CarParkID'] == carpark_num:
+            return transform_carpark(cp)
+    return None
+
+
 def transform_carpark(cp):
     """Transform single carpark to frontend format with pricing info."""
     

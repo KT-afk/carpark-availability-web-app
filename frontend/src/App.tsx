@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import CarparkMap, { CarparkMapRef } from "./components/CarparkMap";
 import { FavoritesPanel } from "./components/FavoritesPanel";
+import { fetchCarparkById } from "./services/carpark";
 import { FavoriteCarpark } from "./services/localStorage";
 
 
@@ -49,7 +50,8 @@ function App() {
   const mapRef = useRef<CarparkMapRef>(null);
   const [showFavoritesPanel, setShowFavoritesPanel] = useState(false);
   const [selectedCarpark, setSelectedCarpark] = useState<availableCarparkResponse | null>(null);
-  const [pendingSelectCarpark, setPendingSelectCarpark] = useState<string | null>(null);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [favoriteError, setFavoriteError] = useState<string | null>(null);
   // Reusable function to request user location
   const requestUserLocation = (autoSearch = false) => {
     if (!navigator.geolocation) {
@@ -238,12 +240,24 @@ function App() {
     // This prevents focus issues where InfoWindow steals focus from input
     mapRef.current?.closeInfoWindow();
   };
-  const handleFavoriteClick = (fav: FavoriteCarpark) => {
+  const handleFavoriteClick = async (fav: FavoriteCarpark) => {
+    setFavoriteLoading(true);
+    setFavoriteError(null);
     setShowFavoritesPanel(false);
+    setIsDropdownVisible(false);
+    mapRef.current?.panToCarpark(fav.latitude, fav.longitude);
+
+    const carpark = await fetchCarparkById(fav.carpark_num, duration, dayType);
+    if (!carpark) {
+      setFavoriteLoading(false);
+      setSelectedCarpark(null);
+      setFavoriteError(`Couldn't load ${fav.development}. It may no longer be available.`);
+      return;
+    }
+    setSelectedCarpark(carpark);
     setSearchResults([]);
-    setIsDropdownVisible(false); // Don't show dropdown — go straight to carpark
-    setPendingSelectCarpark(fav.carpark_num);
-    setSearchTerm(fav.development);
+    setFavoriteLoading(false);
+    setSearchTerm(fav.development); // triggers background search for nearby carparks
   }
 
   const handleDismissDropdown = () => {
@@ -277,9 +291,21 @@ function App() {
     <>
       <div className="relative h-screen w-full">
         {/* Favourite loading indicator */}
-        {pendingSelectCarpark && isLoading && (
+        {favoriteLoading && (
           <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg text-sm animate-pulse">
             Loading carpark...
+          </div>
+        )}
+
+        {/* Favourite error toast */}
+        {favoriteError && (
+          <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm max-w-md">
+            <div className="flex items-center justify-between gap-3">
+              <span>{favoriteError}</span>
+              <button onClick={() => setFavoriteError(null)} className="text-white hover:text-gray-200 font-bold">
+                ✕
+              </button>
+            </div>
           </div>
         )}
 
@@ -342,8 +368,6 @@ function App() {
           onFocus={() => setIsDropdownVisible(true)}
           onCarparkSelect={handleCarparkSelect}
           onFavoritesClick={toggleFavorites}
-          pendingSelectCarpark={pendingSelectCarpark}
-          onPendingSelectHandled={() => setPendingSelectCarpark(null)}
           isDropdownVisible={isDropdownVisible}
           onDismissDropdown={handleDismissDropdown}
           onNearMeClick={handleNearMeClick}
