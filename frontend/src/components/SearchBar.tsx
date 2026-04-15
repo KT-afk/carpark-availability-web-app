@@ -2,7 +2,7 @@ import { addFavorite, addRecentSearch, clearRecentSearches, getRecentSearches, i
 import { availableCarparkResponse } from "@/types/types";
 import { logger } from "@/utils/logger";
 import { Clock, Loader2, MapPin, Search, Star, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { RadiusSelector } from "./RadiusSelector";
 import { SmartRecommendations } from "./SmartRecommendations";
 import { TimeBasedAlert } from "./TimeBasedAlert";
@@ -21,8 +21,6 @@ interface SearchBarProps {
   isDropdownVisible: boolean;
   onDismissDropdown: () => void;
   onFavoritesClick: () => void;
-  pendingSelectCarpark?: string | null;
-  onPendingSelectHandled?: () => void;
   onNearMeClick?: () => void;
   hasUserLocation?: boolean;
   userLocation: { lat: number; lng: number } | null;
@@ -44,8 +42,6 @@ const SearchBar = ({
   isDropdownVisible,
   onDismissDropdown,
   onFavoritesClick,
-  pendingSelectCarpark,
-  onPendingSelectHandled,
   onNearMeClick,
   hasUserLocation = false,
   userLocation,
@@ -54,8 +50,6 @@ const SearchBar = ({
 }: SearchBarProps) => {
   const [forceUpdate, setForceUpdate] = useState(0);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
-  const pendingFavoriteSelect = useRef<string | null>(null);
-
   const showDropdown =
     value.trim() !== "" && isDropdownVisible && (isLoading || searchResults.length > 0);
   const showRecentSearches =
@@ -95,26 +89,6 @@ const SearchBar = ({
     setForceUpdate(prev => prev + 1); // Force re-render to update star icons
   };
 
-  // Sync pending select from App (favourite click)
-  useEffect(() => {
-    if (pendingSelectCarpark) {
-      pendingFavoriteSelect.current = pendingSelectCarpark;
-    }
-  }, [pendingSelectCarpark]);
-
-  // Auto-select carpark when favorite click triggers search results
-  useEffect(() => {
-    if (pendingFavoriteSelect.current && !isLoading && searchResults.length > 0) {
-      const carpark = searchResults.find(cp => cp.carpark_num === pendingFavoriteSelect.current);
-      
-      if (carpark) {
-        logger.debug('✅ Auto-selecting favorite carpark:', carpark.development);
-        handleResultClick(carpark);
-        pendingFavoriteSelect.current = null;
-        onPendingSelectHandled?.();
-      }
-    }
-  }, [searchResults, isLoading]);
 
   return (
     <div className="flex fixed top-0 left-0 right-0 justify-center pt-4 px-4 z-30 p-4 pointer-events-none">

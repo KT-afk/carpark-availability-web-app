@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app
 
-from app.services.carpark_service import get_carparks
+from app.services.carpark_service import fetch_carpark_by_id, get_carparks
 
 carparks_bp = Blueprint('carparks', __name__)
 
@@ -53,3 +53,37 @@ def search():
     }
 
     return jsonify(response), 200
+
+
+@carparks_bp.route("/carparks/<carpark_num>", methods=["GET"])
+def get_single_carpark(carpark_num):
+    """
+    Fetch a single carpark by ID with live availability, pricing, and AI cost calculation.
+
+    Query params:
+    - duration: Parking duration in hours (default 2)
+    - day_type: weekday/saturday/sunday (default "weekday")
+    """
+    duration = request.args.get('duration', default=2, type=float)
+    day_type = request.args.get('day_type', default='weekday', type=str)
+
+    carpark = fetch_carpark_by_id(carpark_num)
+    if not carpark:
+        return jsonify({'error': 'Carpark not found'}), 404
+
+    if duration and duration > 0:
+        try:
+            from app.services.ai_rate_calculator import calculate_costs
+            results = calculate_costs(
+                [carpark],
+                duration_hours=duration,
+                day_type=day_type,
+                max_calculate=1
+            )
+            carpark = results[0]
+        except Exception as e:
+            current_app.logger.error(f"AI calculation error: {e}")
+            carpark['calculated_cost'] = None
+            carpark['cost_breakdown'] = 'Calculation error'
+
+    return jsonify({'carpark': carpark}), 200
