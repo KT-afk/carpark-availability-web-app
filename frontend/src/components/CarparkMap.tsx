@@ -215,6 +215,11 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
     const [showPanel, setShowPanel] = useState(false);
     const mapControllerRef = useRef<MapControllerHandle>(null);
 
+    // Show/hide panel when selectedCarpark changes (e.g. direct favourite lookup)
+    useEffect(() => {
+      setShowPanel(!!selectedCarpark);
+    }, [selectedCarpark]);
+
     // Sync selectedCarpark when carparks prop updates (e.g. duration/dayType change)
     useEffect(() => {
       if (selectedCarpark) {
