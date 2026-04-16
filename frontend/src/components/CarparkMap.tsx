@@ -18,6 +18,8 @@ interface CarparkMapProps {
   onMapClick?: () => void;
   selectedCarpark: availableCarparkResponse | null;
   setSelectedCarpark: (carpark: availableCarparkResponse | null) => void;
+  searchCentre?: { lat: number; lng: number } | null;
+  radius?: number;
   userLocation?: { lat: number; lng: number } | null;
   duration: number;
   dayType: 'weekday' | 'saturday' | 'sunday';
@@ -89,6 +91,40 @@ const clusterRenderer = {
     });
   },
 };
+
+// Radius circle overlay — shows search area on map
+function RadiusCircle({ centre, radius }: { centre: { lat: number; lng: number }; radius: number }) {
+  const map = useMap();
+  const circleRef = useRef<google.maps.Circle | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    if (!circleRef.current) {
+      circleRef.current = new google.maps.Circle({
+        map,
+        center: centre,
+        radius,
+        fillColor: '#3b82f6',
+        fillOpacity: 0.08,
+        strokeColor: '#2563eb',
+        strokeOpacity: 0.5,
+        strokeWeight: 2,
+        clickable: false,
+      });
+    } else {
+      circleRef.current.setCenter(centre);
+      circleRef.current.setRadius(radius);
+    }
+
+    return () => {
+      circleRef.current?.setMap(null);
+      circleRef.current = null;
+    };
+  }, [map, centre, radius]);
+
+  return null;
+}
 
 // Inner component — must be inside <Map> to use useMap()
 const MapController = forwardRef<MapControllerHandle, {
@@ -210,7 +246,7 @@ const MapController = forwardRef<MapControllerHandle, {
 
 // Outer component — owns selection state, renders panel as sibling to Map
 const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
-  ({ carparks, onMapClick, selectedCarpark, setSelectedCarpark, userLocation, duration, dayType }, ref) => {
+  ({ carparks, onMapClick, selectedCarpark, setSelectedCarpark, searchCentre, radius, userLocation, duration, dayType }, ref) => {
     
     const [showPanel, setShowPanel] = useState(false);
     const mapControllerRef = useRef<MapControllerHandle>(null);
@@ -270,6 +306,9 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
             }}
             userLocation={userLocation}
           />
+          {searchCentre && radius && (
+            <RadiusCircle centre={searchCentre} radius={radius} />
+          )}
         </GoogleMap>
         <CarparkPanel
           carpark={selectedCarpark}

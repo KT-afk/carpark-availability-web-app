@@ -351,6 +351,8 @@ function App() {
           carparks={searchResults || []}
           selectedCarpark={selectedCarpark}
           setSelectedCarpark={setSelectedCarpark}
+          searchCentre={!isDropdownVisible && !showFavoritesPanel ? searchCentre : null}
+          radius={radius}
           onMapClick={handleDismissDropdown}
           userLocation={userLocation}
           duration={duration}
