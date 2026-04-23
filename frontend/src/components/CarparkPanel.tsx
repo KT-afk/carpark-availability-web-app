@@ -1,5 +1,5 @@
 import { availableCarparkResponse } from "@/types/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAddressAndPostalCode } from "@/services/geocoding";
 import { fetchCarparkById } from "@/services/carpark";
 import { isFavorite, addFavorite, removeFavorite } from "@/services/localStorage";
@@ -21,6 +21,8 @@ export function CarparkPanel({ carpark, show, onClose, duration, dayType }: Carp
   const [calculatedCost, setCalculatedCost] = useState<number | null>(null);
   const [costBreakdown, setCostBreakdown] = useState<string | null>(null);
   const [costLoading, setCostLoading] = useState(false);
+  // Frontend cost cache: key = "carparkNum|duration|dayType"
+  const costCache = useRef<Map<string, { cost: number | null; breakdown: string | null }>>(new Map());
 
   // Reset and reload address whenever the selected carpark changes
   useEffect(() => {
@@ -29,6 +31,7 @@ export function CarparkPanel({ carpark, show, onClose, duration, dayType }: Carp
     setAddress(null);
     setPostalCode(null);
     setFavorited(isFavorite(carpark.carpark_num));
+    costCache.current.clear(); // Clear cost cache on carpark change
 
     setAddressLoading(true);
     getAddressAndPostalCode(carpark.latitude, carpark.longitude).then((result) => {
@@ -49,16 +52,25 @@ export function CarparkPanel({ carpark, show, onClose, duration, dayType }: Carp
       return;
     }
 
-    // Always fetch fresh cost for the current duration/dayType
+    const cacheKey = `${carpark.carpark_num}|${duration}|${dayType}`;
+
+    // Return immediately from frontend cache — no loading state
+    const cached = costCache.current.get(cacheKey);
+    if (cached) {
+      setCalculatedCost(cached.cost);
+      setCostBreakdown(cached.breakdown);
+      setCostLoading(false);
+      return;
+    }
+
+    // Cache miss — fetch from backend
     setCostLoading(true);
     fetchCarparkById(carpark.carpark_num, duration, dayType).then((result) => {
-      if (result?.calculated_cost != null) {
-        setCalculatedCost(result.calculated_cost);
-        setCostBreakdown(result.cost_breakdown ?? null);
-      } else {
-        setCalculatedCost(null);
-        setCostBreakdown(null);
-      }
+      const cost = result?.calculated_cost ?? null;
+      const breakdown = result?.cost_breakdown ?? null;
+      costCache.current.set(cacheKey, { cost, breakdown });
+      setCalculatedCost(cost);
+      setCostBreakdown(breakdown);
       setCostLoading(false);
     });
   }, [carpark?.carpark_num, duration, dayType]);
