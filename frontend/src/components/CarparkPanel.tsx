@@ -1,6 +1,7 @@
 import { availableCarparkResponse } from "@/types/types";
 import { useEffect, useState } from "react";
 import { getAddressAndPostalCode } from "@/services/geocoding";
+import { fetchCarparkById } from "@/services/carpark";
 import { isFavorite, addFavorite, removeFavorite } from "@/services/localStorage";
 import { X, Star, Car, Bike, Truck, MapPin, Loader2 } from "lucide-react";
 
@@ -17,6 +18,9 @@ export function CarparkPanel({ carpark, show, onClose, duration, dayType }: Carp
   const [postalCode, setPostalCode] = useState<string | null>(null);
   const [addressLoading, setAddressLoading] = useState(false);
   const [favorited, setFavorited] = useState(false);
+  const [calculatedCost, setCalculatedCost] = useState<number | null>(null);
+  const [costBreakdown, setCostBreakdown] = useState<string | null>(null);
+  const [costLoading, setCostLoading] = useState(false);
 
   // Reset and reload address whenever the selected carpark changes
   useEffect(() => {
@@ -33,6 +37,31 @@ export function CarparkPanel({ carpark, show, onClose, duration, dayType }: Carp
       setAddressLoading(false);
     });
   }, [carpark?.carpark_num]);
+
+  // Fetch cost when carpark, duration, or dayType changes
+  useEffect(() => {
+    if (!carpark) return;
+
+    if (!carpark.pricing) {
+      setCalculatedCost(null);
+      setCostBreakdown(null);
+      setCostLoading(false);
+      return;
+    }
+
+    // Always fetch fresh cost for the current duration/dayType
+    setCostLoading(true);
+    fetchCarparkById(carpark.carpark_num, duration, dayType).then((result) => {
+      if (result?.calculated_cost != null) {
+        setCalculatedCost(result.calculated_cost);
+        setCostBreakdown(result.cost_breakdown ?? null);
+      } else {
+        setCalculatedCost(null);
+        setCostBreakdown(null);
+      }
+      setCostLoading(false);
+    });
+  }, [carpark?.carpark_num, duration, dayType]);
 
   const toggleFavorite = () => {
     if (!carpark) return;
@@ -76,10 +105,6 @@ export function CarparkPanel({ carpark, show, onClose, duration, dayType }: Carp
       aria-modal="true"
       aria-label="Carpark details"
     >
-      {/* Drag handle — mobile only */}
-      <div className="flex justify-center pt-3 pb-1 md:hidden">
-        <div className="w-10 h-1 rounded-full bg-gray-300" />
-      </div>
 
       {carpark && (
         <div className="px-5 pb-8 pt-2 md:pt-5">
@@ -182,22 +207,29 @@ export function CarparkPanel({ carpark, show, onClose, duration, dayType }: Carp
                 <RateRow label="Sun / PH" value={carpark.pricing.sunday_rate} active={dayType === 'sunday'} />
               </div>
 
-              {carpark.calculated_cost != null && (
+              {costLoading && (
+                <div className="mt-3 rounded-2xl bg-cyan-50 border border-cyan-200 px-3 py-2.5 flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin text-cyan-600" />
+                  <span className="text-sm text-cyan-700">Calculating cost...</span>
+                </div>
+              )}
+
+              {!costLoading && calculatedCost != null && (
                 <div className="mt-3 rounded-2xl bg-cyan-50 border border-cyan-200 px-3 py-2.5">
                   <p className="text-xs text-cyan-700 font-medium mb-0.5">
                     Estimated cost for {duration}h ({dayType})
                   </p>
                   <p className="text-xl font-bold text-cyan-900">
-                    ${carpark.calculated_cost.toFixed(2)}
+                    ${calculatedCost.toFixed(2)}
                   </p>
-                  {carpark.cost_breakdown && (
-                    <p className="text-xs text-cyan-600 mt-0.5">{carpark.cost_breakdown}</p>
+                  {costBreakdown && (
+                    <p className="text-xs text-cyan-600 mt-0.5">{costBreakdown}</p>
                   )}
                 </div>
               )}
 
               {/* No calculated cost but pricing exists — show today's rate */}
-              {carpark.calculated_cost == null && rateForDay() && (
+              {!costLoading && calculatedCost == null && rateForDay() && (
                 <p className="text-xs text-gray-500 mt-2">
                   Today's rate: {rateForDay()}
                 </p>

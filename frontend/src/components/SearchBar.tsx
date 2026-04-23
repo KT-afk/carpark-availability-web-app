@@ -24,7 +24,17 @@ interface SearchBarProps {
   hasUserLocation?: boolean;
   userLocation: { lat: number; lng: number } | null;
   duration: number;
+  onDurationChange: (hours: number) => void;
+  dayType: 'weekday' | 'saturday' | 'sunday';
+  onDayTypeChange: (type: 'weekday' | 'saturday' | 'sunday') => void;
 }
+
+const commonDurations = [0.5, 1, 2, 3, 4, 6, 8, 12];
+
+const formatDuration = (hours: number) => {
+  if (hours < 1) return `${hours * 60}min`;
+  return `${hours}hr${hours > 1 ? 's' : ''}`;
+};
 
 const SearchBar = ({
   value,
@@ -44,6 +54,9 @@ const SearchBar = ({
   hasUserLocation = false,
   userLocation,
   duration,
+  onDurationChange,
+  dayType,
+  onDayTypeChange,
 }: SearchBarProps) => {
   const [forceUpdate, setForceUpdate] = useState(0);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
@@ -51,6 +64,7 @@ const SearchBar = ({
     value.trim() !== "" && isDropdownVisible && (isLoading || searchResults.length > 0);
   const showRecentSearches =
     value.trim() === "" && isDropdownVisible && recentSearches.length > 0;
+  const showDurationStrip = value.trim() !== "";
 
   useEffect(() => {
     if (isDropdownVisible && value.trim() === "") {
@@ -88,7 +102,7 @@ const SearchBar = ({
 
 
   return (
-    <div className="flex fixed top-0 left-0 right-0 justify-center pt-4 px-4 z-30 p-4 pointer-events-none">
+    <div className="fixed top-0 left-0 right-0 flex justify-center p-4 z-30 pointer-events-none">
       <div className="w-full max-w-2xl pointer-events-auto">
         <form onSubmit={(e) => e.preventDefault()} className="relative">
           <div className="relative">
@@ -98,7 +112,7 @@ const SearchBar = ({
               onChange={(e) => onChange(e.target.value)}
               onFocus={onFocus}
               onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
-              className="w-full rounded-full border border-gray-200 bg-white px-5 py-3 pr-32 text-base shadow-md transition-shadow duration-200 hover:shadow-lg focus:border-gray-300 focus:outline-none"
+              className="w-full appearance-none rounded-full border border-gray-200 bg-white px-5 py-3 pr-32 text-base shadow-md transition-shadow duration-200 hover:shadow-lg focus:border-gray-300 focus:outline-none"
               placeholder="Search for carpark by name, area, or number"
             />
             <div className="absolute right-0 top-0 mr-4 mt-3 flex items-center gap-2">
@@ -127,6 +141,60 @@ const SearchBar = ({
               </button>
             </div>
           </div>
+
+          {/* Duration strip: always visible when search term exists */}
+          {showDurationStrip && (
+            <div className="mt-2 bg-white rounded-lg shadow-sm border border-gray-200 px-3 py-2">
+              <div className="flex flex-wrap gap-1.5 mb-1.5">
+                {commonDurations.map(hours => (
+                  <button
+                    key={hours}
+                    type="button"
+                    onClick={() => onDurationChange(hours)}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                      duration === hours
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {formatDuration(hours)}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <label className="text-xs text-gray-500">Custom:</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    max="24"
+                    value={duration}
+                    onChange={(e) => onDurationChange(parseFloat(e.target.value) || 0.5)}
+                    className="w-16 px-1.5 py-0.5 border border-gray-300 rounded text-xs"
+                  />
+                  <span className="text-xs text-gray-500">hrs</span>
+                </div>
+                <div className="flex gap-1.5">
+                  {([['weekday', 'Wkday'], ['saturday', 'Sat'], ['sunday', 'Sun']] as const).map(([type, label]) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => onDayTypeChange(type)}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                        dayType === type
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {showDropdown && (
             <div className="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200 max-h-96 overflow-y-auto">
               {/* Header with dismiss button */}
@@ -144,6 +212,7 @@ const SearchBar = ({
                   </button>
                 </div>
               </div>
+
               {searchCentre && (
                     <div className="px-4 pt-4">
                       <RadiusSelector
@@ -166,14 +235,14 @@ const SearchBar = ({
                 <div>
                   {/* Smart Recommendations */}
                   <div className="px-4 pt-4">
-                    <SmartRecommendations 
-                      carparks={searchResults} 
+                    <SmartRecommendations
+                      carparks={searchResults}
                       userLocation={userLocation}
                       duration={duration}
                       onCarparkClick={handleResultClick}
                     />
                   </div>
-                  
+
                   {/* Results list */}
                   <ul className="divide-y divide-gray-100">
                     {searchResults.map((result, index) => (

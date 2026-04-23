@@ -1,4 +1,3 @@
-import { DurationSelector } from "@/components/DurationSelector";
 import SearchBar from "@/components/SearchBar";
 import { availableCarparkResponse } from "@/types/types";
 import { logger } from "@/utils/logger";
@@ -52,7 +51,6 @@ function App() {
   const [selectedCarpark, setSelectedCarpark] = useState<availableCarparkResponse | null>(null);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
-  const [durationCollapseTick, setDurationCollapseTick] = useState(0);
   // Reusable function to request user location
   const requestUserLocation = (autoSearch = false) => {
     if (!navigator.geolocation) {
@@ -264,7 +262,6 @@ function App() {
   const handleDismissDropdown = () => {
     setIsDropdownVisible(false);
     setShowFavoritesPanel(false);
-    setDurationCollapseTick(t => t + 1);
   };
 
   const handleNearMeClick = () => {
@@ -378,6 +375,9 @@ function App() {
           hasUserLocation={!!userLocation && useGPSLocation}
           userLocation={useGPSLocation ? userLocation : null}
           duration={duration}
+          onDurationChange={setDuration}
+          dayType={dayType}
+          onDayTypeChange={setDayType}
         />
         { showFavoritesPanel && (
           <FavoritesPanel
@@ -387,17 +387,6 @@ function App() {
           />
         )
 
-        }
-        { !showFavoritesPanel &&
-          (<div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4 z-20">
-            <DurationSelector
-              duration={duration}
-              onChange={setDuration}
-              dayType={dayType}
-              onDayTypeChange={setDayType}
-              collapseTick={durationCollapseTick}
-            />
-          </div>)
         }
 
         {/* PWA update toast */}

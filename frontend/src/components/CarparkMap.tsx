@@ -295,6 +295,7 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
           defaultZoom={13}
           mapId={import.meta.env.VITE_GOOGLE_MAPS_MAP_ID}
           onClick={handleMapClick}
+          mapTypeControl={false}
         >
           <MapController
             ref={mapControllerRef}

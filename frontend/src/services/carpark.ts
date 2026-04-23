@@ -8,7 +8,7 @@ export async function fetchCarparkById(
   dayType: string
 ): Promise<availableCarparkResponse | null> {
   try {
-    const url = `${API_URL}/carparks/${carparkNum}?duration=${duration}&day_type=${dayType}`;
+    const url = `${API_URL}/carparks/${carparkNum}?duration=${duration}&day_type=${dayType}&_t=${Date.now()}`;
     const response = await fetch(url);
     if (!response.ok) return null;
     const data = await response.json();

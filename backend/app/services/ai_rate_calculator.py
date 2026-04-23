@@ -147,7 +147,7 @@ def _calculate_single_carpark(
     )
 
 
-CACHE_VERSION = 2  # Bump this to invalidate all cached AI calculations
+CACHE_VERSION = 3  # Bump this to invalidate all cached AI calculations
 
 
 @cache.memoize(timeout=86400)
@@ -171,7 +171,7 @@ def _calculate_with_claude(
     try:
         # Call Claude API
         response = _client.messages.create(
-            model="claude-3-haiku-20240307",  # Claude Haiku (fast & cheap)
+            model="claude-haiku-4-5-20251001",
             max_tokens=500,
             temperature=0,  # Deterministic for math
             messages=[{"role": "user", "content": prompt}],
