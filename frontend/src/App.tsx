@@ -52,6 +52,7 @@ function App() {
   const [selectedCarpark, setSelectedCarpark] = useState<availableCarparkResponse | null>(null);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
+  const [durationCollapseTick, setDurationCollapseTick] = useState(0);
   // Reusable function to request user location
   const requestUserLocation = (autoSearch = false) => {
     if (!navigator.geolocation) {
@@ -263,6 +264,7 @@ function App() {
   const handleDismissDropdown = () => {
     setIsDropdownVisible(false);
     setShowFavoritesPanel(false);
+    setDurationCollapseTick(t => t + 1);
   };
 
   const handleNearMeClick = () => {
@@ -376,7 +378,6 @@ function App() {
           hasUserLocation={!!userLocation && useGPSLocation}
           userLocation={useGPSLocation ? userLocation : null}
           duration={duration}
-          dayType={dayType}
         />
         { showFavoritesPanel && (
           <FavoritesPanel
@@ -394,6 +395,7 @@ function App() {
               onChange={setDuration}
               dayType={dayType}
               onDayTypeChange={setDayType}
+              collapseTick={durationCollapseTick}
             />
           </div>)
         }

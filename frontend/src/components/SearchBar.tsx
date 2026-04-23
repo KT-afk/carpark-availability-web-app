@@ -5,7 +5,6 @@ import { Clock, Loader2, MapPin, Search, Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { RadiusSelector } from "./RadiusSelector";
 import { SmartRecommendations } from "./SmartRecommendations";
-import { TimeBasedAlert } from "./TimeBasedAlert";
 
 interface SearchBarProps {
   value: string;
@@ -25,7 +24,6 @@ interface SearchBarProps {
   hasUserLocation?: boolean;
   userLocation: { lat: number; lng: number } | null;
   duration: number;
-  dayType: 'weekday' | 'saturday' | 'sunday';
 }
 
 const SearchBar = ({
@@ -46,7 +44,6 @@ const SearchBar = ({
   hasUserLocation = false,
   userLocation,
   duration,
-  dayType,
 }: SearchBarProps) => {
   const [forceUpdate, setForceUpdate] = useState(0);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
@@ -182,94 +179,35 @@ const SearchBar = ({
                     {searchResults.map((result, index) => (
                     <li
                       key={index}
-                      className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
                       onClick={() => handleResultClick(result)}
                     >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-start gap-2">
-                            <div className="flex-1">
-                              <p className="font-semibold text-gray-900">
-                                {result.development}
-                              </p>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {result.carpark_num} • {result.area}
-                              </p>
-                            </div>
-                            <button
-                              onClick={(e) => handleFavoriteToggle(e, result)}
-                              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                              title={isFavorite(result.carpark_num) ? "Remove from favorites" : "Add to favorites"}
-                            >
-                              <Star 
-                                className={`w-5 h-5 ${isFavorite(result.carpark_num) ? 'fill-yellow-500 text-yellow-500' : 'text-gray-400'}`}
-                              />
-                            </button>
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => handleFavoriteToggle(e, result)}
+                          className="p-1 hover:bg-gray-100 rounded-full transition-colors shrink-0"
+                          title={isFavorite(result.carpark_num) ? "Remove from favorites" : "Add to favorites"}
+                        >
+                          <Star
+                            className={`w-4 h-4 ${isFavorite(result.carpark_num) ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'}`}
+                          />
+                        </button>
+                        <span className="font-medium text-gray-900 text-sm truncate flex-1">
+                          {result.development}
+                        </span>
+                        <span className={`shrink-0 w-2 h-2 rounded-full ${result.car_lots > 10 ? 'bg-green-500' : result.car_lots > 0 ? 'bg-orange-400' : 'bg-red-400'}`} />
+                        <span className="text-xs text-gray-600 shrink-0 w-8 text-right">{result.car_lots}</span>
+                        {result.calculated_cost !== null && result.calculated_cost !== undefined && (
+                          <span className="text-xs font-semibold text-green-700 shrink-0">
+                            ${result.calculated_cost.toFixed(2)}
+                          </span>
+                        )}
                         {(result as any).distance !== undefined && (
-                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium whitespace-nowrap">
-                            📍 {((result as any).distance).toFixed(1)} km
+                          <span className="text-xs text-gray-500 shrink-0">
+                            {((result as any).distance).toFixed(1)}km
                           </span>
                         )}
                       </div>
-
-                      <div className="mt-3">
-                        <p className="text-xs text-gray-500 mb-1 font-semibold">
-                          Available Lots: {result.car_lots + result.motorcycle_lots + result.heavy_vehicle_lots}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {result.car_lots > 0 && (
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                              🚗 {result.car_lots} cars
-                            </span>
-                          )}
-                          {result.motorcycle_lots > 0 && (
-                            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                              🏍️ {result.motorcycle_lots} bikes
-                            </span>
-                          )}
-                          {result.heavy_vehicle_lots > 0 && (
-                            <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
-                              🚛 {result.heavy_vehicle_lots} heavy
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* AI-calculated cost display */}
-                      {result.calculated_cost !== null && result.calculated_cost !== undefined ? (
-                        <div className="mt-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-green-900 font-bold text-xl">
-                              ${result.calculated_cost.toFixed(2)}
-                            </span>
-                            {result.ai_confidence === 'low' && (
-                              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
-                                ⚠️ Estimate
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-green-700">
-                            {result.cost_breakdown}
-                          </div>
-                        </div>
-                      ) : result.has_pricing ? (
-                        <div className="mt-3 text-xs text-gray-500 italic">
-                          Select duration above to calculate cost
-                        </div>
-                      ) : (
-                        <div className="mt-3 text-xs text-gray-400 italic">
-                          Pricing data unavailable
-                        </div>
-                      )}
-
-                      {/* Time-based pricing alert */}
-                      <TimeBasedAlert 
-                        carpark={result} 
-                        duration={duration} 
-                        dayType={dayType} 
-                      />
                     </li>
                   ))}
                 </ul>

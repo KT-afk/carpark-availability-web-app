@@ -1,139 +1,158 @@
-# 🅿️ AI-Powered Carpark Finder
+# AI-Powered Carpark Finder
 
 > **Smart parking cost optimization for Singapore** - Find the cheapest carpark for your exact parking duration using AI.
 
 [![Python](https://img.shields.io/badge/Python-3.14-blue.svg)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg)](https://www.typescriptlang.org/)
-[![AI](https://img.shields.io/badge/AI-Claude%203.5-8A2BE2.svg)](https://www.anthropic.com/)
+[![AI](https://img.shields.io/badge/AI-Claude%20Haiku-8A2BE2.svg)](https://www.anthropic.com/)
 
 ---
 
-## 🎯 The Problem
+## The Problem
 
-Existing carpark apps in Singapore show **rates** OR **availability**, but none calculate the **actual cost** for your specific parking duration. Users waste time:
-- Manually comparing complex rate structures
-- Calculating costs like "first 2 hrs free, then $3/hr"  
-- Choosing expensive options without realizing
+Existing carpark apps in Singapore show **rates** OR **availability**, but none calculate the **actual cost** for your specific parking duration. Users waste time manually comparing complex rate structures like "first 2 hrs free, then $3/hr" across multiple carparks.
 
-**Example:** Parking for 2 hours at Orchard - which is cheapest?
-- ION: "$3/hr first 3 hrs" = $6
-- 313@Somerset: "$2.14 per half hour" = $8.56
-- Bugis+: "$1.07 per half hour first 3 hrs" = $4.28 ✅
-
-Without our app, you'd never know Bugis+ is the winner!
-
----
-
-## 💡 The Solution
+## The Solution
 
 **AI-powered cost calculator** that:
-- ✅ Uses **Claude AI** to parse complex rate structures
-- ✅ Calculates **exact cost** for any parking duration
-- ✅ Sorts carparks by **cheapest option** for YOUR specific needs
-- ✅ Shows **real-time availability** from LTA DataMall
-- ✅ Handles **weekday/weekend** rate variations
+- Uses **Claude AI** to parse complex rate structures and calculate exact costs
+- Shows **real-time availability** from LTA DataMall and HDB APIs
+- Sorts carparks by **cheapest option** for your specific duration
+- Handles **weekday/Saturday/Sunday** rate variations
+- Works as a **Progressive Web App** (installable, offline-capable)
 
-### What Makes This Different
-
-| Feature | This App | sgCarMart | Other Apps |
-|---------|----------|-----------|------------|
-| Real-time availability | ✅ All carparks | ⚠️ Selected only | ✅ Yes |
-| Pricing data | ✅ Yes | ✅ Yes | ❌ No |
-| **AI cost calculation** | ✅ **YES** | ❌ No | ❌ No |
-| **Duration-based sorting** | ✅ **YES** | ❌ No | ❌ No |
-| Complex rate parsing | ✅ AI-powered | ❌ Manual | ❌ N/A |
-
----
-
-## 🚀 Key Features
-
-### 1. AI-Powered Cost Calculation
-- **Claude 3.5 Sonnet** understands complex rate structures
-- Handles "first X hours free", "per half hour", "weekend rates"
-- Shows step-by-step cost breakdown
-- Confidence scoring for ambiguous rates
-
-### 2. Duration-Based Optimization
-- Select parking duration (30min - 24hrs)
-- Instantly calculates cost at every carpark
-- Sorts results by cheapest for YOUR duration
-- Separate rates for weekday/Saturday/Sunday
-
-### 3. Real-Time Availability
-- Live data from LTA DataMall API (updated every minute)
-- Shows car, motorcycle, and heavy vehicle lots
-- Search by carpark number, area, or development name
-- Interactive Google Maps integration
-
-### 4. Smart UX
-- Debounced search (reduces API calls)
-- Loading states with spinners
-- Click-to-select from dropdown
-- Auto-pan map to selected carpark
-- Mobile-responsive design
+| Feature | This App | Other Apps |
+|---------|----------|------------|
+| Real-time availability | All carparks (LTA + HDB) | Selected only |
+| AI cost calculation | Yes | No |
+| Duration-based sorting | Yes | No |
+| Favourites | Yes | Some |
+| Geocode-first search | Yes | No |
+| Radius search with visual overlay | Yes | No |
 
 ---
 
-## 🛠️ Tech Stack
+## Features
+
+### AI-Powered Cost Calculation
+- **Claude Haiku** parses complex rate structures (e.g. "first X hours free", "per half hour", "weekend rates")
+- Shows step-by-step cost breakdown with confidence scoring
+- Parallel calculation using ThreadPoolExecutor for fast results
+- Results cached in Redis (24h TTL) to reduce API costs
+
+### Location-Aware Search
+- **Geocode-first search** — type a place name and the app geocodes it, then searches by radius
+- **"Near me" search** — uses GPS to find carparks near your current location
+- **Radius selector** — adjust search area (500m / 1km / 1.5km / 2km)
+- **Radius circle overlay** — visual blue circle on the map showing the search boundary
+- **SVY21 distance calculation** — accurate Singapore-specific projected coordinates
+
+### Interactive Map
+- Google Maps with **AdvancedMarker** and **vector maps**
+- **Marker clustering** — cluster badge colour reflects best availability in cluster
+- **Custom car markers** — colour-coded by availability (green > 10, orange > 0, red = full)
+- Pulsing blue dot for user location
+- Click carpark marker to open detail panel
+
+### Favourites & Recent Searches
+- Star button in search bar to open favourites panel
+- **Direct carpark lookup** — tapping a favourite calls `/carparks/<id>` directly (<1s) instead of re-searching (3-4s)
+- Map pans to favourite's stored coordinates immediately, before API responds
+- Background search populates nearby markers after selection
+- Recent searches dropdown when search bar is empty and focused
+- All data persisted in localStorage
+
+### Smart Recommendations
+- AI-powered carpark suggestions based on availability and pricing
+- Time-based pricing alerts for rate changes
+
+### Carpark Detail Panel
+- Bottom sheet (mobile) / sidebar (desktop) with slide animation
+- Live availability (car, motorcycle, heavy vehicle lots)
+- Full pricing table (weekday, Saturday, Sunday rates)
+- AI-calculated cost estimate for selected duration
+- Reverse geocoded address via backend endpoint
+- Favourite toggle
+
+### Duration Selector
+- Quick select: 30min, 1hr, 2hrs, 3hrs, 4hrs, 6hrs, 8hrs, 12hrs
+- Custom duration input
+- Day type toggle: Weekday / Saturday / Sunday
+
+---
+
+## Tech Stack
 
 ### Backend
-- **Framework:** Flask 3.1.0 (Python)
-- **AI:** Anthropic Claude 3.5 Sonnet
-- **Caching:** Flask-Caching (5-min TTL)
-- **APIs:** LTA DataMall (availability), data.gov.sg (HDB availability, carpark rates)
-- **SDK:** [SGData SDK](https://pypi.org/project/sgdata-sdk/) (self-built, type-safe Python wrapper for data.gov.sg)
+- **Framework:** Flask 3.1 (Python 3.14)
+- **AI:** Anthropic Claude Haiku (cost calculation)
+- **Caching:** Redis (with SimpleCache fallback)
+- **APIs:** LTA DataMall (availability), data.gov.sg via SGData SDK (HDB data), Google Geocoding API
+- **Distance:** SVY21 projected coordinates for accurate Singapore distance calculations
+- **Deployment:** Render (gunicorn WSGI)
 
 ### Frontend
-- **Framework:** React 19.2 + TypeScript 5.9
-- **Build Tool:** Vite 7.3
+- **Framework:** React 19 + TypeScript 5.9
+- **Build:** Vite 7.3
 - **Styling:** Tailwind CSS 4.1
-- **Maps:** Google Maps (@vis.gl/react-google-maps)
+- **Maps:** Google Maps (@vis.gl/react-google-maps) with AdvancedMarker
+- **Clustering:** @googlemaps/markerclusterer
 - **Icons:** Lucide React
+- **PWA:** vite-plugin-pwa (Workbox, offline caching)
+- **Deployment:** Vercel
 
 ### Architecture
 ```
-┌─────────────┐      ┌──────────────┐      ┌─────────────┐
-│   React     │─────▶│    Flask     │─────▶│ LTA DataMall│
-│  Frontend   │      │   Backend    │      │(Availability)│
-└─────────────┘      └──────────────┘      └─────────────┘
-                            │
-                     ┌──────┼──────┐
-                     ▼      ▼      ▼
-              ┌──────────┐ ┌──────────────┐ ┌──────────────┐
-              │Claude API│ │ data.gov.sg  │ │  Static JSON │
-              │(Rate Calc)│ │(HDB Avail.) │ │  (Rates,     │
-              └──────────┘ │ via SGData   │ │   Coords)    │
-                           │     SDK      │ └──────────────┘
-                           └──────────────┘
+┌─────────────┐      ┌──────────────────┐      ┌─────────────────┐
+│   React     │─────>│    Flask         │─────>│  LTA DataMall   │
+│  Frontend   │      │   Backend        │      │  (Availability) │
+│  (Vercel)   │      │   (Render)       │      └─────────────────┘
+└─────────────┘      └──────────────────┘      ┌─────────────────┐
+                            │                   │  data.gov.sg    │
+                     ┌──────┼──────┐            │  (HDB via SDK)  │
+                     v      v      v            └─────────────────┘
+              ┌──────────┐ ┌─────────┐ ┌──────────────┐
+              │Claude API│ │  Redis  │ │ Google Maps  │
+              │(Rate Calc)│ │ (Cache) │ │ (Geocoding)  │
+              └──────────┘ └─────────┘ └──────────────┘
 ```
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/carparks` | GET | Search carparks with AI cost calculation |
+| `/carparks/<carpark_num>` | GET | Direct lookup for single carpark |
+| `/geocode/reverse` | GET | Reverse geocode coordinates to address |
+| `/health` | GET | Health check |
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
-- Python 3.14+ 
+- Python 3.14+
 - Node.js 18+
-- Anthropic API key ([Get one free](https://console.anthropic.com/))
+- Anthropic API key ([Get one](https://console.anthropic.com/))
 - LTA DataMall API key ([Sign up](https://datamall.lta.gov.sg/content/datamall/en/request-for-api.html))
 - Google Maps API key ([Get started](https://developers.google.com/maps))
+- Redis (optional, falls back to in-memory cache)
 
 ### Backend Setup
 
 ```bash
 cd backend
-
-# Install dependencies
 pip install -r requirements.txt
 
 # Configure environment variables
 cp env.example .env
 # Edit .env and add:
-# ANTHROPIC_API_KEY=your_key_here
-# GOV_API_KEY=your_lta_key_here
+# ANTHROPIC_API_KEY=your_key
+# GOV_API_KEY=your_lta_key
+# GOOGLE_MAPS_API_KEY=your_google_key
+# REDIS_URL=redis://localhost:6379 (optional)
 
-# Run server
 python run.py
 ```
 
@@ -144,28 +163,24 @@ Backend runs on `http://localhost:5001`
 ```bash
 cd backend
 
-# Download HDB carpark coordinates (SVY21 → WGS84 conversion)
+# Download HDB carpark coordinates (SVY21 -> WGS84 conversion)
 python scripts/download_hdb_data.py
 
 # Download carpark rates from data.gov.sg and merge with manual overrides
 python scripts/download_carpark_rates.py
 ```
 
-The rates script downloads 357 carpark rates from [data.gov.sg](https://data.gov.sg/) and merges them with manually curated rates in `backend/app/data/carpark_rates.json`. Manual entries take priority for matching carparks, ensuring accuracy for key locations.
-
 ### Frontend Setup
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
 
 # Configure environment variables
-# Edit .env and add:
 # VITE_GOOGLE_MAPS_API_KEY=your_google_maps_key
+# VITE_GOOGLE_MAPS_MAP_ID=your_map_id
+# VITE_API_URL=http://localhost:5001
 
-# Run dev server
 npm run dev
 ```
 
@@ -173,30 +188,8 @@ Frontend runs on `http://localhost:5173`
 
 ---
 
-## 🎮 Usage
+## How the AI Works
 
-### Basic Search
-1. Open http://localhost:5173
-2. Type a carpark name, number, or area (e.g., "orchard")
-3. See real-time availability and pricing
-
-### AI Cost Calculation
-1. Use the **Duration Selector** at the bottom
-2. Select parking duration (e.g., 2 hours)
-3. Choose day type (weekday/Saturday/Sunday)
-4. Results instantly sorted by cheapest option! 💰
-
-### Example Searches
-- `orchard` - Find cheapest parking in Orchard
-- `marina` - Compare Marina Bay carparks
-- `bugis` - Budget options near Bugis
-- `vivo` - VivoCity and nearby carparks
-
----
-
-## 🧠 How the AI Works
-
-### The Challenge
 Singapore carpark rates come in inconsistent formats:
 ```
 "$2.14 per half hour"
@@ -205,202 +198,21 @@ Singapore carpark rates come in inconsistent formats:
 "First 2 hours free, then $3/hr"
 ```
 
-### The AI Solution
+Claude Haiku parses these with temperature=0 (deterministic math) and returns structured JSON with the calculated cost, breakdown, and confidence level. Results are cached in Redis for 24 hours to minimize API costs.
 
-**Prompt Engineering Approach:**
-```python
-prompt = f"""You are a parking cost calculator.
-
-CARPARK: {name}
-RATE: {rate_string}
-DURATION: {hours} hours
-DAY: {day_type}
-
-Calculate exact cost and return JSON:
-{{
-  "total_cost": <number>,
-  "breakdown": "<explanation>",
-  "confidence": "high"
-}}
-"""
-```
-
-**Why AI > Traditional Parsing:**
-- ✅ Handles 20+ rate format variations naturally
-- ✅ Understands context ("first", "after", "before")
-- ✅ No regex maintenance nightmare
-- ✅ Adapts to new rate formats automatically
-
-**Performance:**
-- ~300ms per calculation
-- Temperature = 0 for deterministic math
-- JSON mode for structured output
-- Cost: ~$0.003 per carpark
+Calculations run in parallel using ThreadPoolExecutor (up to 5 concurrent API calls), wrapped in Flask app context for thread safety.
 
 ---
 
-## 📊 API Reference
+## License
 
-### GET `/carparks`
-
-Search carparks with optional AI cost calculation.
-
-**Query Parameters:**
-| Param | Type | Description | Required |
-|-------|------|-------------|----------|
-| `search` | string | Search term (number/area/development) | No |
-| `duration` | float | Parking duration in hours | No |
-| `day_type` | string | `weekday`, `saturday`, or `sunday` | No |
-
-**Example Request:**
-```bash
-GET /carparks?search=orchard&duration=2&day_type=weekday
-```
-
-**Response:**
-```json
-[
-  {
-    "carpark_num": "B23",
-    "development": "ION Orchard",
-    "area": "Orchard",
-    "latitude": 1.3039,
-    "longitude": 103.8319,
-    "car_lots": 45,
-    "motorcycle_lots": 10,
-    "heavy_vehicle_lots": 0,
-    "has_pricing": true,
-    "pricing": {
-      "weekday_rate": "$3.00 per hour for first 3 hours, $4.00 per hour after",
-      "saturday_rate": "$4.00 per hour",
-      "sunday_rate": "$4.00 per hour"
-    },
-    "calculated_cost": 6.00,
-    "cost_breakdown": "2 hrs × $3/hr = $6.00",
-    "ai_confidence": "high"
-  }
-]
-```
+MIT License
 
 ---
 
-## 🧪 Testing
+## Acknowledgments
 
-### Manual Testing
-```bash
-# Test basic search
-curl "http://localhost:5001/carparks?search=orchard"
-
-# Test AI calculation
-curl "http://localhost:5001/carparks?search=marina&duration=2&day_type=weekday"
-```
-
-### Test Cases
-- **0.5 hours** - Short parking (30 min)
-- **2 hours** - Common duration
-- **8 hours** - All-day parking
-- **Weekday vs Weekend** - Rate differences
-- **Complex rates** - "First X hours free" scenarios
-
----
-
-## 📈 Performance
-
-### Benchmarks
-- **Search latency:** <500ms (without AI)
-- **AI calculation:** ~300ms per carpark
-- **Cache hit rate:** ~85% (5-min TTL)
-- **Concurrent requests:** 50+ simultaneous users
-
-### Cost Optimization
-- Anthropic API: ~$0.003 per carpark calculation
-- 10 carparks per search = **$0.03 per search**
-- Free tier: $5 credit = ~160 searches
-- Production: Cache results for 1 hour = 70% cost reduction
-
----
-
-## 🗺️ Roadmap
-
-### Phase 1: MVP ✅ (Current)
-- [x] AI-powered cost calculation
-- [x] Duration-based sorting
-- [x] Real-time availability
-- [x] Google Maps integration
-
-### Phase 2: Enhancement (Next 2 weeks)
-- [ ] Caching layer (reduce API costs by 70%)
-- [ ] User feedback ("Report wrong price")
-- [ ] Historical price tracking
-- [ ] EV charging indicators
-
-### Phase 3: Advanced (Month 2)
-- [ ] Progressive Web App (PWA)
-- [ ] Offline mode with cached data
-- [ ] User accounts & favorites
-- [ ] Route optimization (multi-stop)
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Areas to help:
-
-1. **Pricing Data:** Add more carpark rates (see `backend/app/data/carpark_rates.json`)
-2. **AI Prompts:** Improve calculation accuracy (see `ai_rate_calculator.py`)
-3. **Testing:** Add unit/integration tests
-4. **Features:** Pick from roadmap or suggest new ones
-
----
-
-## 📄 License
-
-MIT License - feel free to use for learning or commercial projects.
-
----
-
-## 🙏 Acknowledgments
-
-- **LTA DataMall** - Real-time availability data
+- **LTA DataMall** - Real-time carpark availability data
 - **Anthropic** - Claude AI API
-- **data.gov.sg** - HDB carpark coordinates & carpark rates (343 carparks)
-- **Google Maps** - Interactive maps
-
----
-
-## 💼 For Recruiters
-
-### Why This Project Stands Out
-
-1. **Solves Real Problem:** Addresses actual user pain point (cost comparison)
-2. **Modern Tech Stack:** React 19, TypeScript, Python, AI integration
-3. **Production Considerations:** Caching, error handling, performance optimization
-4. **Unique Differentiator:** Only app in SG with AI-powered cost calculation
-5. **Full-Stack Skills:** Backend API design, frontend UX, AI integration
-
-### Technical Highlights
-- **AI/LLM Integration:** Anthropic Claude API with structured prompts
-- **Complex Problem Solving:** Natural language rate parsing instead of regex hell
-- **Performance Optimization:** Caching strategy, API cost reduction
-- **Clean Architecture:** Service layer pattern, separation of concerns
-- **Type Safety:** Full TypeScript with strict mode
-
-### Interview Talking Points
-- Chose AI over traditional parsing (20+ rate formats)
-- Optimized AI costs from $0.10 to $0.03 per search
-- Designed for scalability (50+ concurrent users)
-- Implemented fuzzy matching for carpark names
-- Built with production deployment in mind
-
----
-
-## 📞 Contact
-
-**Project by:** [Your Name]  
-**Email:** your.email@example.com  
-**GitHub:** [@yourusername](https://github.com/yourusername)  
-**LinkedIn:** [Your Profile](https://linkedin.com/in/yourprofile)
-
----
-
-**⭐ Star this repo if you found it helpful!**
+- **data.gov.sg** - HDB carpark coordinates and rates
+- **Google Maps** - Maps, geocoding, and vector tiles
