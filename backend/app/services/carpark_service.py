@@ -62,19 +62,31 @@ def transform_carpark(cp):
     """Transform single carpark to frontend format with pricing info."""
     
     # Handle both LTA format (Location as string) and HDB format (Location as dict)
-    if isinstance(cp["Location"], str):
-        location_str = cp["Location"].strip()
+    location_value = cp.get("Location")
+    carpark_id = cp.get("CarParkID")
+    if not carpark_id:
+        current_app.logger.warning("⚠️ Skipping carpark with missing CarParkID")
+        return None
+
+    if isinstance(location_value, str):
+        location_str = location_value.strip()
         if not location_str:
             # Skip carparks with empty location
-            current_app.logger.warning(f"⚠️ Skipping carpark {cp.get('CarParkID', 'unknown')} with empty location")
+            current_app.logger.warning(f"⚠️ Skipping carpark {carpark_id} with empty location")
             return None
-        latitude, longitude = location_str.split()
+        parts = location_str.split()
+        if len(parts) != 2:
+            current_app.logger.warning(f"⚠️ Skipping carpark {carpark_id} with malformed location '{location_str}'")
+            return None
+        latitude, longitude = parts
     else:
-        latitude = cp["Location"]["Latitude"]
-        longitude = cp["Location"]["Longitude"]
+        if not isinstance(location_value, dict):
+            current_app.logger.warning(f"⚠️ Skipping carpark {carpark_id} with invalid location payload")
+            return None
+        latitude = location_value.get("Latitude")
+        longitude = location_value.get("Longitude")
     
-    carpark_id = cp["CarParkID"]
-    development = cp["Development"]
+    development = cp.get("Development") or carpark_id
     
     # Get pricing info
     pricing_info = pricing_service.get_pricing_info(carpark_id, development)
@@ -83,8 +95,12 @@ def transform_carpark(cp):
     # Extract address if available (HDB carparks have detailed address info)
     address = cp.get("Address", development)  # Fallback to development name
     
-    lat_f = float(latitude)
-    lng_f = float(longitude)
+    try:
+        lat_f = float(latitude)
+        lng_f = float(longitude)
+    except (TypeError, ValueError):
+        current_app.logger.warning(f"⚠️ Skipping carpark {carpark_id} due to non-numeric coordinates")
+        return None
 
     # Use pre-computed SVY21 if available (HDB), otherwise convert now (LTA)
     if "northing" in cp and "easting" in cp:
@@ -95,7 +111,7 @@ def transform_carpark(cp):
 
     return {
         "carpark_num": carpark_id,
-        "area": cp["Area"],
+        "area": cp.get("Area", ""),
         "development": development,
         "address": address,
         "latitude": lat_f,
@@ -172,12 +188,14 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None, radius_m=2000):
         radius_m: Radius in metres for place name searches (default 1000m)
 
     Returns:
-        (carparks, search_centre) tuple:
+        (carparks, search_centre, search_error) tuple:
           - carparks: list of carpark dicts
           - search_centre: (lat, lng) centre used for radius search, or None
+          - search_error: error code string for search-centre failures, or None
     """
     max_results = current_app.config['MAX_CARPARKS_RETURN']
     search_centre = None  # (lat, lng) — set when radius search runs
+    search_error = None
 
     # 1. Fetch from BOTH sources
     log_info("🔍 Fetching carparks from LTA and HDB APIs...")
@@ -211,21 +229,23 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None, radius_m=2000):
     is_near_me = term.lower() == "near me" if term else False
     if is_near_me:
         centre = (user_lat, user_lng) if user_lat is not None and user_lng is not None else None
+        if not centre:
+            return [], None, "near_me_location_unavailable"
     elif term:
         centre = geocode_place(term)
+        if not centre:
+            current_app.logger.warning(f"⚠️ Geocode failed for search term '{term}'")
+            return [], None, "geocode_unavailable"
     else:
         centre = None
-    if not centre:
-        return [], None
-    centre_lat, centre_lng = centre
-    centre_n, centre_e = wgs84_to_svy21(centre_lat, centre_lng)
-    # Add distances relative to geocoded centre
-    for cp in transformed:
-        cp['distance'] = calculate_distance(centre_n, centre_e, cp['northing'], cp['easting'])
-    # Filter to radius
-    in_radius = filter_by_radius(transformed, centre_n, centre_e, radius_m)
-    if in_radius:
-        # Sort by distance within radius
+    if centre:
+        centre_lat, centre_lng = centre
+        centre_n, centre_e = wgs84_to_svy21(centre_lat, centre_lng)
+        # Add distances relative to geocoded centre
+        for cp in transformed:
+            cp['distance'] = calculate_distance(centre_n, centre_e, cp['northing'], cp['easting'])
+        # Filter to radius (including explicit empty set)
+        in_radius = filter_by_radius(transformed, centre_n, centre_e, radius_m)
         in_radius.sort(key=lambda x: x.get('distance', float('inf')))
         transformed = in_radius
         search_centre = {'lat': centre_lat, 'lng': centre_lng}
@@ -243,4 +263,4 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None, radius_m=2000):
     # 8. Limit results
     result = transformed[:max_results]
 
-    return result, search_centre
+    return result, search_centre, search_error

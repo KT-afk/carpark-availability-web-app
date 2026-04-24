@@ -5,7 +5,7 @@ Converts place names and addresses to WGS84 coordinates using Google Geocoding A
 
 import requests
 from app import cache
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Any
 from flask import current_app
 from app.logging_utils import log_info
 
@@ -46,3 +46,39 @@ def geocode_place(term: str) -> Optional[Tuple[float, float]]:
     except Exception as e:
         current_app.logger.error(f"❌ Geocoding error for '{term}': {e}")
         return None
+
+
+@cache.memoize(timeout=604800)
+def reverse_geocode_coords(lat: float, lng: float) -> Dict[str, Any]:
+    """Reverse geocode coordinates to stable address/postalCode payload."""
+    api_key = current_app.config.get("GOOGLE_MAPS_API_KEY")
+    if not api_key:
+        return {"address": None, "postalCode": None}
+
+    try:
+        url = "https://maps.googleapis.com/maps/api/geocode/json"
+        response = requests.get(
+            url,
+            params={"latlng": f"{lat},{lng}", "key": api_key},
+            timeout=5,
+        )
+        data = response.json()
+
+        if data.get("status") == "OK" and data.get("results"):
+            address = data["results"][0].get("formatted_address")
+            postal_code = None
+
+            for result in data["results"]:
+                for component in result.get("address_components", []):
+                    if "postal_code" in component.get("types", []):
+                        postal_code = component.get("long_name")
+                        break
+                if postal_code:
+                    break
+
+            return {"address": address, "postalCode": postal_code}
+
+        return {"address": None, "postalCode": None}
+    except Exception as e:
+        current_app.logger.error(f"Reverse geocoding error: {e}")
+        return {"address": None, "postalCode": None}

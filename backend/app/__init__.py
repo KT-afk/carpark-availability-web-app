@@ -26,7 +26,6 @@ def create_app():
                 "CACHE_REDIS_URL": redis_url,
             },
         )
-        redis_url = app.config.get("REDIS_URL")
     else:
         cache.init_app(
             app, config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300}

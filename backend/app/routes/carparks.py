@@ -25,7 +25,7 @@ def search():
     radius_m = request.args.get('radius', default=1000, type=int)
 
     # Special handling for "near me" — treat as empty search with distance sort
-    carparks, search_centre = get_carparks(
+    carparks, search_centre, search_error = get_carparks(
         search_term, user_lat, user_lng,
         radius_m=radius_m
     )
@@ -50,6 +50,7 @@ def search():
     response = {
         'carparks': carparks,
         'search_centre': search_centre,
+        'search_error': search_error,
     }
 
     return jsonify(response), 200

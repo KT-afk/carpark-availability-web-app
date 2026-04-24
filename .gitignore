@@ -33,6 +33,10 @@ Thumbs.db
 # Logs
 *.log
 
+# Env files containing local secrets
+**/.env.local
+**/.env.*.local
+
 # Documentation (AI-generated)
 AI_IMPLEMENTATION_PLAN.md
 FEATURES_SUMMARY.md

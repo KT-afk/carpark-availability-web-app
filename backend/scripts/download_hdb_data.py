@@ -29,7 +29,10 @@ def download_hdb_data():
     
     base_url = "https://data.gov.sg/api/action/datastore_search"
     resource_id = "d_23f946fa557947f93a8043bbef41dd09"
-    api_key = "v2:100c0e51083bcdc63c5029596166d96b5e72519b0dfbf3546080f4758872b1fd:5ctQIb0rsUHLVr8xAeSOvtfU60FerKGI"
+    api_key = os.getenv("DATA_GOV_API_KEY")
+    if not api_key:
+        print("❌ Missing DATA_GOV_API_KEY. Export it before running this script.")
+        return []
     
     all_records = []
     offset = 0
@@ -42,7 +45,7 @@ def download_hdb_data():
         headers = {"X-Api-Key": api_key}
         
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             data = response.json()
             

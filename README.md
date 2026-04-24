@@ -151,6 +151,7 @@ cp env.example .env
 # ANTHROPIC_API_KEY=your_key
 # GOV_API_KEY=your_lta_key
 # GOOGLE_MAPS_API_KEY=your_google_key
+# DATA_GOV_API_KEY=your_data_gov_key
 # REDIS_URL=redis://localhost:6379 (optional)
 
 python run.py
@@ -164,11 +165,18 @@ Backend runs on `http://localhost:5001`
 cd backend
 
 # Download HDB carpark coordinates (SVY21 -> WGS84 conversion)
+# Requires DATA_GOV_API_KEY in environment
 python scripts/download_hdb_data.py
 
 # Download carpark rates from data.gov.sg and merge with manual overrides
 python scripts/download_carpark_rates.py
 ```
+
+### Security Notes
+
+- Never commit live API keys in `.env*` files or scripts.
+- Store production secrets in your deployment platform environment settings.
+- If a key is accidentally committed: rotate/revoke it immediately, replace with placeholders in tracked files, and clean it from git history.
 
 ### Frontend Setup
 
