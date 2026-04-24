@@ -32,31 +32,59 @@ interface MapControllerHandle {
 const CAR_SVG_PATH = "M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z";
 
 function markerColor(lots: number): string {
-  if (lots > 10) return '#22c55e';
-  if (lots > 0) return '#f97316';
-  return '#ef4444';
+  if (lots > 10) return '#2563eb';
+  if (lots > 0) return '#f59e0b';
+  return '#dc2626';
 }
 
 function CarparkMarker({ lots, selected }: { lots: number; selected: boolean }) {
   const bg = markerColor(lots);
   return (
-    <div style={{
-      background: bg,
-      borderRadius: '50%',
-      width: selected ? 36 : 28,
-      height: selected ? 36 : 28,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: selected
-        ? `0 0 0 3px #fff, 0 0 0 6px #1d4ed8`
-        : '0 2px 4px rgba(0,0,0,0.35)',
-      transition: 'all 0.15s ease',
-      cursor: 'pointer',
-    }}>
-      <svg width={selected ? 20 : 16} height={selected ? 20 : 16} viewBox="0 0 24 24" fill="white">
-        <path d={CAR_SVG_PATH} />
-      </svg>
+    <div style={{ position: 'relative', width: selected ? 46 : 28, height: selected ? 46 : 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {selected && (
+        <>
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            boxShadow: '0 0 0 3px #fff, 0 0 0 7px #7c3aed, 0 8px 18px rgba(124,58,237,0.45)',
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: -22,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#7c3aed',
+            color: '#fff',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: 0.3,
+            borderRadius: 9999,
+            padding: '2px 8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+            whiteSpace: 'nowrap',
+          }}>
+            SELECTED
+          </div>
+        </>
+      )}
+      <div style={{
+        background: bg,
+        borderRadius: '50%',
+        width: selected ? 34 : 28,
+        height: selected ? 34 : 28,
+        border: selected ? '2px solid #fff' : '1px solid rgba(255,255,255,0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: selected ? '0 4px 12px rgba(0,0,0,0.5)' : '0 2px 4px rgba(0,0,0,0.35)',
+        transition: 'all 0.15s ease',
+        cursor: 'pointer',
+      }}>
+        <svg width={selected ? 20 : 16} height={selected ? 20 : 16} viewBox="0 0 24 24" fill="white">
+          <path d={CAR_SVG_PATH} />
+        </svg>
+      </div>
     </div>
   );
 }

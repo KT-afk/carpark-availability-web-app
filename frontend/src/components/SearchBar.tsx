@@ -192,6 +192,16 @@ const SearchBar = ({
                   ))}
                 </div>
               </div>
+              {searchCentre && (
+                <div className="mt-2">
+                  <RadiusSelector
+                    radius={radius}
+                    onChange={setRadius}
+                    resultCount={searchResults.length}
+                    placeName={searchTerm}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -213,16 +223,6 @@ const SearchBar = ({
                 </div>
               </div>
 
-              {searchCentre && (
-                    <div className="px-4 pt-4">
-                      <RadiusSelector
-                        radius={radius}
-                        onChange={setRadius}
-                        resultCount={searchResults.length}
-                        placeName={searchTerm}
-                      />
-                    </div>
-                  )}
               {isLoading ? (
                 <div className="flex items-center justify-center p-8">
                   <Loader2
