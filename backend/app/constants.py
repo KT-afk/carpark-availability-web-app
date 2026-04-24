@@ -1,2 +1,2 @@
-MAX_CARPARKS_RETURN = 100  # 100 to show a good mix of LTA + HDB carparks for "near me"
+MAX_CARPARKS_RETURN = 100  # cap only for non-radius list responses
 REQUEST_TIMEOUT = 10

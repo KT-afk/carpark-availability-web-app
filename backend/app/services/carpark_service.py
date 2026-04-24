@@ -260,7 +260,11 @@ def get_carparks(search_term=None, user_lat=None, user_lng=None, radius_m=2000):
 
         transformed.sort(key=lambda x: x.get('distance', float('inf')))
 
-    # 8. Limit results
-    result = transformed[:max_results]
+    # 8. Limit results only for non-radius flows.
+    # For radius search (search_centre present), users should see all carparks in range.
+    if search_centre is not None:
+        result = transformed
+    else:
+        result = transformed[:max_results]
 
     return result, search_centre, search_error
