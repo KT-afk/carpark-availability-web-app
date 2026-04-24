@@ -262,7 +262,7 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
         const updated = carparks.find(cp => cp.carpark_num === selectedCarpark.carpark_num);
         if (updated) setSelectedCarpark(updated);
       }
-    }, [carparks]);
+    }, [carparks, selectedCarpark, setSelectedCarpark]);
 
     useImperativeHandle(ref, () => ({
       panToCarpark: (lat: number, lng: number) => {
@@ -314,7 +314,10 @@ const CarparkMap = forwardRef<CarparkMapRef, CarparkMapProps>(
         <CarparkPanel
           carpark={selectedCarpark}
           show={showPanel}
-          onClose={() => setShowPanel(false)}
+          onClose={() => {
+            setSelectedCarpark(null);
+            setShowPanel(false);
+          }}
           duration={duration}
           dayType={dayType}
         />

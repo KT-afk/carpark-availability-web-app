@@ -375,9 +375,19 @@ function App() {
           hasUserLocation={!!userLocation && useGPSLocation}
           userLocation={useGPSLocation ? userLocation : null}
           duration={duration}
-          onDurationChange={setDuration}
+          onDurationChange={(hours) => {
+            setDuration(hours);
+            if (isDropdownVisible) {
+              setSelectedCarpark(null);
+            }
+          }}
           dayType={dayType}
-          onDayTypeChange={setDayType}
+          onDayTypeChange={(type) => {
+            setDayType(type);
+            if (isDropdownVisible) {
+              setSelectedCarpark(null);
+            }
+          }}
         />
         { showFavoritesPanel && (
           <FavoritesPanel
