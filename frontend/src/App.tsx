@@ -311,7 +311,7 @@ function App() {
         {/* Location loading indicator */}
         {isGettingLocation && (
           <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg text-sm animate-pulse">
-            📍 Getting your location...
+            Getting your location...
           </div>
         )}
 
@@ -325,8 +325,8 @@ function App() {
             }`}
           >
             {userLocation
-              ? "✓ Location ready! Click 📍 to search nearby"
-              : "⚠️ Location not available - Click 📍 to retry"}
+              ? "Location ready — tap the pin to search nearby"
+              : "Location not available — tap the pin to retry"}
           </div>
         )}
 
@@ -334,7 +334,7 @@ function App() {
         {locationError && !isGettingLocation && (
           <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm max-w-md">
             <div className="flex items-center justify-between gap-3">
-              <span>⚠️ {locationError}</span>
+              <span>{locationError}</span>
               <button
                 onClick={() => setLocationError(null)}
                 className="text-white hover:text-gray-200 font-bold"
