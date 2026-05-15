@@ -161,6 +161,18 @@ const SearchBar = ({
                     {formatDuration(hours)}
                   </button>
                 ))}
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    max="24"
+                    value={duration}
+                    onChange={(e) => onDurationChange(parseFloat(e.target.value) || 0.5)}
+                    className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs"
+                  />
+                  <span className="text-xs text-gray-500">hrs</span>
+                </div>
                 <span className="text-gray-300">|</span>
                 {([['weekday', 'Wkday'], ['saturday', 'Sat'], ['sunday', 'Sun']] as const).map(([type, label]) => (
                   <button
