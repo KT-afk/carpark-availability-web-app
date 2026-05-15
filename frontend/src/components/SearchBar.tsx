@@ -145,10 +145,8 @@ const SearchBar = ({
           {/* Duration strip: always visible when search term exists */}
           {showDurationStrip && (
             <div className="mt-2 bg-white rounded-lg shadow-sm border border-gray-200 px-3 py-2">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-                Parking Duration
-              </div>
-              <div className="flex flex-wrap gap-1.5 mb-2">
+              {/* Desktop: single row */}
+              <div className="hidden md:flex flex-wrap items-center gap-1.5">
                 {commonDurations.map(hours => (
                   <button
                     key={hours}
@@ -163,24 +161,7 @@ const SearchBar = ({
                     {formatDuration(hours)}
                   </button>
                 ))}
-              </div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <label className="text-xs text-gray-500">Custom:</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="0.5"
-                  max="24"
-                  value={duration}
-                  onChange={(e) => onDurationChange(parseFloat(e.target.value) || 0.5)}
-                  className="w-16 px-1.5 py-0.5 border border-gray-300 rounded text-xs"
-                />
-                <span className="text-xs text-gray-500">hrs</span>
-              </div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-                Day Type
-              </div>
-              <div className="flex gap-1.5 mb-2">
+                <span className="text-gray-300">|</span>
                 {([['weekday', 'Wkday'], ['saturday', 'Sat'], ['sunday', 'Sun']] as const).map(([type, label]) => (
                   <button
                     key={type}
@@ -195,6 +176,56 @@ const SearchBar = ({
                     {label}
                   </button>
                 ))}
+              </div>
+              {/* Mobile: stacked layout */}
+              <div className="md:hidden">
+                <div className="flex flex-wrap gap-1.5 mb-1.5">
+                  {commonDurations.map(hours => (
+                    <button
+                      key={hours}
+                      type="button"
+                      onClick={() => onDurationChange(hours)}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                        duration === hours
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {formatDuration(hours)}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-xs text-gray-500">Custom:</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0.5"
+                      max="24"
+                      value={duration}
+                      onChange={(e) => onDurationChange(parseFloat(e.target.value) || 0.5)}
+                      className="w-16 px-1.5 py-0.5 border border-gray-300 rounded text-xs"
+                    />
+                    <span className="text-xs text-gray-500">hrs</span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {([['weekday', 'Wkday'], ['saturday', 'Sat'], ['sunday', 'Sun']] as const).map(([type, label]) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => onDayTypeChange(type)}
+                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                          dayType === type
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
               {searchCentre && (
                 <div className="mt-2">
